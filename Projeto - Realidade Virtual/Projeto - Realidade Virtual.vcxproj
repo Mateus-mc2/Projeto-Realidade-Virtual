@@ -12,6 +12,29 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\material.cpp" />
+    <ClCompile Include="src\obj_reader.cpp" />
+    <ClCompile Include="src\pnm_writer.cpp" />
+    <ClCompile Include="src\pt_renderer.cpp" />
+    <ClCompile Include="src\quadric.cpp" />
+    <ClCompile Include="src\sdl_reader.cpp" />
+    <ClCompile Include="src\triangular_object.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\camera.h" />
+    <ClInclude Include="include\light.h" />
+    <ClInclude Include="include\material.h" />
+    <ClInclude Include="include\math_lib.h" />
+    <ClInclude Include="include\obj_reader.h" />
+    <ClInclude Include="include\pnm_writer.h" />
+    <ClInclude Include="include\pt_renderer.h" />
+    <ClInclude Include="include\quadric.h" />
+    <ClInclude Include="include\ray.h" />
+    <ClInclude Include="include\renderable_object.h" />
+    <ClInclude Include="include\sdl_object.h" />
+    <ClInclude Include="include\sdl_reader.h" />
+    <ClInclude Include="include\triangular_object.h" />
+    <ClInclude Include="include\util_exception.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A9306560-758D-43E0-A053-91661F7824DC}</ProjectGuid>

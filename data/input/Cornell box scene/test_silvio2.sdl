@@ -1,0 +1,86 @@
+# Tentativa :-) de arquivo sdl para Cornell Room
+# Marcelo Walter
+# Nov. 2005
+# Este arquivo NAO foi testado!!!
+# Modificado de acordo com os testes
+# do Vinicius 6/12/2005
+
+eye 0.0 0.0 5.7
+size 800 800
+ortho -1 -1 1 1
+background 0 0 0
+ambient 0.1
+### antialiasing -> 0- desabilitado; 1- habilitado;
+antialiasing 1
+### lightsamplingtype -> 1- grade; 2- area determina numero de raios randomicos no triangulo;
+lightsamplingtype 2
+
+# Luz branca retangulo no centro do teto
+# light triangular_obj red green blue intensity light_sampling_step density
+# light luzcornell.obj 1.0 1.0 1.0 0.1 0.8 1.5
+#light luzcornell.obj 1.0 1.0 1.0 0.1 0.8 4.2
+light lft_luzcornell.obj   1.0 1.0 1.0 0.05 0.8 1
+light rgt_luzcornell.obj   1.0 1.0 1.0 0.05 0.8 1
+light back_luzcornell.obj  1.0 1.0 1.0 0.05 0.8 1
+light front_luzcornell.obj 1.0 1.0 1.0 0.05 0.8 1
+
+npaths 3
+maxdepth 2 
+tonemapping 0.0
+seed 9
+
+# TESTANDO QUADRICA - equação paramétrica: x^2 + y^2 + z = 2 (paraboloide).
+# objectquadric 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.5 99.0     0.8 0.4 0.1     1.33     1 0.8 0.5 0 1
+objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 -1.0 -1.0 20.0 401.3     0.4 0.8 0.2     1.2     0 1 0 0 5
+objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 1.0 1.0 20.0 401.3    0.2 0.4 0.8      1.5     0 1 0 0 100
+objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 1.0 -1.0 20.0 401.3     0.8 0.4 0.2     1.5     0 1 0 0 200
+
+# TESTANDO LUZ PONTUAL
+# pointlight x y z red green blue intensity
+# pointlight 0.0 0.0 5.7 0.5 0.5 0.5 0.3
+# pointlight 16.7 0.0 5.7 0 0.2 1 0.8
+
+# luz no canto superior esquerdo
+# pointlight -5.7 -5.7 -10.0 1 1 1 1.0
+
+# pointlight -0.9100 3.5360 -23.3240 1 1 1 1
+# pointlight -0.9100 3.5360 -26.4880 1 1 1 1
+# pointlight 0.9100 3.5360 -26.4880 1 1 1 1
+# pointlight 0.9100 3.5360 -23.3240 1 1 1 1
+# pointlight 0 3.5360 -24.9060 1 1 1 0.8
+
+
+# Aqui comeca a definicao das geometrias
+# Um arquivo para cada parede
+# mais 2 arquivos com os cubos
+# As cores seguem a cena de Cornell 
+# As paredes sao todas totalmente difusas
+# bem como os 2 cubos amarelos
+
+# object <name.obj> red green blue refraction_coefficient ka kd ks kt n
+
+# left wall RED
+object leftwall.obj 1.0 0.0 0.0     1.0     0.3 0.4 0.0 0.0 5
+
+# right wall GREEN
+object rightwall.obj 0.0 1.0 0.0     1.0     0.3 0.4 0.0 0.0 5
+
+# floor WHITE
+object floor.obj 1.0 1.0 1.0     1.0     0.3 0.5 0.5 0.0 500
+
+# back wall WHITE
+object back.obj 0 0 0     1.0     0 1 0 0 500
+
+# cam wall WHITE
+# object cam.obj 1 0 1     1.0     0 0 1 0 500
+
+# ceiling WHITE
+object ceiling.obj 1.0 1.0 1.0     1.0     0.3 0.7 0 0.0 5
+
+# cube 1 WHITE
+#object cube1.obj 1.0 1.0 1.0     1.5     0.3 1 0 0 5
+
+# cube 2 WHITE
+#object cube2.obj 1.0 1.0 1.0     1.33     0.3 1 0 0 5
+
+output cornell.pnm

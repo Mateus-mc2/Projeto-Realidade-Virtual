@@ -1,0 +1,29 @@
+eye 0.0 0.0 3.5
+size 200 200
+ortho -1 -1 1 1
+ambient 0.3
+
+npaths 1
+maxdepth 1
+tonemapping 1.0
+seed 9
+
+# light definition
+# x y z  intensity
+pointlight 0.0 1.0 1.0 1 1 1 1.0
+pointlight 1.0 0.0 1.0 1 1 1 1.0
+# object definition
+# a b c d e f g h j k     red green blue    Refraction_coeff     ka kd ks kt n
+# red sphere at x=0, y=0, z=-10 radius=1
+#
+objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 10.0 -1.0    1.0 0.0 0.0    1.5   0.5 0.6 0.0 0.5 5 
+#
+#plane 1
+objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 30.0     0.3 0.3 0.3    1.0   0.5 0.1 0.5 0.0 5
+#plane 2
+objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 5.0      0.0 0.0 1.0    1.0   0.5 0.1 0.5 0.0 5
+#
+# background color
+background 0.5 0.5 0.5
+
+output oneplanesphere.pnm

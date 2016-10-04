@@ -1,18 +1,42 @@
+// Copyright (c) 2015, Jubileus
+//
+// Project: Sucesso do verao
+// Author: Rodrigo F. Figueiredo <rodrigo.figueiredo@gprt.ufpe.br>
+// Creation date: 05/01/2016 (dd/mm/yyyy)
+
 #include <iostream>
 
-#include <Eigen/Dense>
-#include <opencv2/core.hpp>
+#include <opencv2\core\core.hpp>
+#include <opencv2\imgproc\imgproc.hpp>
+#include <opencv2\highgui\highgui.hpp>
 
-typedef cv::Matx<int, 3, 3> CVMatrix3i;
-using Eigen::Matrix3d;
+#include "pt_renderer.h"
+#include "pnm_writer.h"
+#include "sdl_reader.h"
 
-int main() {
-	Matrix3d eigen_identity = Matrix3d::Identity();
-	std::cout << eigen_identity << std::endl;
+int main(int argc, char* argv[]) {
+  if (argc < 4) {
+    std::cout << "  SDL input and targets missing." << std::endl;
+    return -1;
+  }
 
-	CVMatrix3i cv_identity = CVMatrix3i::eye();
-	std::cout << cv_identity << std::endl;
-	system("pause");
+  // Leitura da cena
+  std::cout << "\n## Reading SDL file." << std::endl;
+  io::SDLReader sdl_reader;
+  util::SDLObject sdl_object = sdl_reader.ReadSDL(argv[1], argv[2]);
 
-	return 0;
+  // Processamento
+  std::cout << "\n## Rendering started." << std::endl;
+  pt::PTRenderer pt_renderer(sdl_object);
+  cv::Mat rendered_img = pt_renderer.RenderScene();
+
+  // Escrita da imagem renderizada
+  std::cout << "\n## Começo da exportação." << std::endl;
+  io::PNMWriter pnm_mgr(argv[3]);
+  if (argc > 4)
+    pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
+  else
+    pnm_mgr.WritePNMFile(rendered_img);
+
+  return 0;
 }
