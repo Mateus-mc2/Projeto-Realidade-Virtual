@@ -29,7 +29,7 @@ Quadric::Quadric(double a, double b, double c, double f, double g, double h, dou
   this->coefficients_(this->kCoeffD) = d;
 }
 
-double Quadric::GetIntersectionParameter(const Ray &ray, Vector3d &normal) const {
+double Quadric::GetIntersectionParameter(const Ray &ray, Vector3d *normal) const {
   // Coefficients.
   double a = this->coefficients_(this->kCoeffA);
   double b = this->coefficients_(this->kCoeffB);
@@ -95,14 +95,14 @@ double Quadric::GetIntersectionParameter(const Ray &ray, Vector3d &normal) const
   double y = y_0 + t*dy;
   double z = z_0 + t*dz;
 
-  normal(0) = 2*(a*x + g*z + h*y + p);
-  normal(1) = 2*(b*y + f*z + h*x + q);
-  normal(2) = 2*(c*z + f*y + g*x + r);
+  (*normal)(0) = 2*(a*x + g*z + h*y + p);
+  (*normal)(1) = 2*(b*y + f*z + h*x + q);
+  (*normal)(2) = 2*(c*z + f*y + g*x + r);
 
-  if (!(math::IsAlmostEqual(normal(0), 0.0, this->kEps) &&
-        math::IsAlmostEqual(normal(1), 0.0, this->kEps) &&
-        math::IsAlmostEqual(normal(2), 0.0, this->kEps))) {
-    normal = normal / normal.norm();
+  if (!(math::IsAlmostEqual((*normal)(0), 0.0, this->kEps) &&
+        math::IsAlmostEqual((*normal)(1), 0.0, this->kEps) &&
+        math::IsAlmostEqual((*normal)(2), 0.0, this->kEps))) {
+	(*normal) = (*normal) / normal->norm();
   }
 
   if (t < this->kEps) {  // If it's negative or almost zero.

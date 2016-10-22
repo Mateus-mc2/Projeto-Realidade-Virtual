@@ -29,7 +29,7 @@ class Quadric : public RenderableObject {
           double r, double d, const Material &material, bool is_emissive);
   ~Quadric() {}
 
-  double GetIntersectionParameter(const Ray &ray, Eigen::Vector3d &normal) const;
+  double GetIntersectionParameter(const Ray &ray, Eigen::Vector3d *normal) const;
 
   // Accessors.
   Eigen::VectorXd coefficients() const { return this->coefficients_; }

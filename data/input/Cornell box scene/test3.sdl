@@ -1,14 +1,14 @@
-eye 0.0 0.0 7.7
-size 300 150
-ortho -3 -1.5 3 1.5
+eye 0.0 0.0 5.7
+size 1200 600
+ortho -2 -1 2 1
 ambient 0.1
 ### antialiasing -> 0- desabilitado; 1- habilitado;
-antialiasing 0
+antialiasing 1
 ### lightsamplingtype -> 1- grade; 2- area determina numero de raios randomicos no triangulo;
-lightsamplingtype 2
+lightsamplingtype 1
 
-npaths 2
-maxdepth 2
+npaths 300
+maxdepth 7
 tonemapping 0.0
 seed 9
 
@@ -18,35 +18,26 @@ seed 9
 # pointlight 1.0 3.5 -23     1 1 1     0.8
 # pointlight -1.0 3.5 -27     1 1 1     0.8
 # pointlight -1.0 3.5 -23     1 1 1     0.8
-#pointlight 0.0 2.0 -15     1 1 1     0.8
-
-# Extensas
-light luzcornell.obj 1.0 1.0 1.0 0.1 0.8 4.2
-# light luzcornell.obj 1.0 1.0 1.0 0.1 0.8 0.5
+pointlight 0.0 2.0 -15     1 1 1     0.8
 
 # object definition
-# a b c d e f g h j k     red green blue    Refraction_coeff     ka kd ks kt n
+# a b c d e f g h j k     red green blue    Refraction_coeff     ka kd ks  n
 # Sphere 1
-objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 6.0 1.5 20.0 434.25     0.8 0.15 0.05     1.5     0.1 0.7 0 0 5
+objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 6.0 1.5 20.0 434.25     1 1 1     1.5     0.4 0.1 0.2 0.8 5
 # Sphere 2
-objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 0.0 1.5 20.0 398.25     0.15 0.8 0.05     1.5     0.1 0 0 1 500
+objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 0.0 1.5 20.0 398.25     1 1 1     1.5     0.4 0.1 0.2 0.8 5
 # Sphere 3
-objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 -6.0 1.5 20.0 434.25    0.15 0.05 0.8     1.8     0.1 1 0 0 500
-
-
-
+objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 -6.0 1.5 20.0 434.25     1 1 1     1.5     0.4 0.1 0.2 0.8 5
 # Plane 1 (right wall - somewhat blue)
 objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 -0.5 0.0 0.0 10.0     0.1 0.2 0.85     1.0     0.3 0.7 0.0 0.0 5
-# Plane 2 (ceiling - somewhat dark gray)
-objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 -0.5 0.0 4.0     1 1 1     1.0     0.5 1 0.0 0.0 5
+# Plane 2 (floor)
+objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 -0.5 0.0 5.0     1 1 1     1.0     0.3 0.7 0.0 0.0 5
 # Plane 3 (back wall)
-objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.5 32.8     0 0 0     1.0     0.1 0.5 0 0.0 500
-# Plane CAM (CAM wall)
-objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 -0.5 10.8     0 0 0     1.0     0 1 0 0.0 500
+objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.5 32.8     1 1 1     1.0     0.3 0.7 0.0 0.0 5
 # Plane 4 (left wall - somewhat cyan)
 objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.5 0.0 0.0 10.0     0.2 0.7 0.6     1.0     0.3 0.7 0.0 0.0 5
-# Plane 5 (floor)
-objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.5 0.0 4.0     0 0 0     1.0     0.1 1 0.0 0.0 5
+# Plane 5 (ceiling - somewhat dark gray)
+objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.5 0.0 5.0     0.3 0.3 0.3     1.0     0.3 0.7 0.0 0.0 5
 # background color
 background 0.0 0.0 0.0
 

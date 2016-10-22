@@ -3,8 +3,8 @@
 namespace io {
 
 void OBJReader::ReadOBJ(const std::string &file_directory, const std::string &file_name,
-                        std::vector<Eigen::Vector3d> &vertices,
-                        std::vector<Eigen::Vector3i> &faces) {
+                        std::vector<Eigen::Vector3d> *vertices,
+                        std::vector<Eigen::Vector3i> *faces) {
   std::ifstream obj_file(file_directory + file_name);
   std::string word;
 
@@ -22,7 +22,7 @@ void OBJReader::ReadOBJ(const std::string &file_directory, const std::string &fi
         obj_file >> y;
         obj_file >> z;
         Eigen::Vector3d new_vertice(x, y, z);
-        vertices.push_back(new_vertice);
+        vertices->push_back(new_vertice);
         std::cout << "==obj== Lido 'vertice': " << x << " " << y << " " << z << std::endl;
 
       } else if (word == "f") {            // Face, composta de indices para o vetor de vertices
@@ -31,7 +31,7 @@ void OBJReader::ReadOBJ(const std::string &file_directory, const std::string &fi
         obj_file >> idx2;
         obj_file >> idx3;
         Eigen::Vector3i new_face(idx1-1, idx2-1, idx3-1);
-        faces.push_back(new_face);
+        faces->push_back(new_face);
         std::cout << "==obj== Lido 'face': " << idx1 << " " << idx2 << " " << idx3 << std::endl;
 
       } else {

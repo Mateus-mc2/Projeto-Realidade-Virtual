@@ -54,7 +54,7 @@ bool TriangularObject::IsInnerPoint(const Vector3d &barycentric_coordinates) con
           alpha <= 1 && beta <= 1 && gamma <= 1);
 }
 
-double TriangularObject::GetIntersectionParameter(const Ray &ray, Vector3d &normal) const {
+double TriangularObject::GetIntersectionParameter(const Ray &ray, Vector3d *normal) const {
   Vector4d ray_origin(ray.origin(0), ray.origin(1), ray.origin(2), 1);
 
   // Parameters to return.
@@ -63,19 +63,19 @@ double TriangularObject::GetIntersectionParameter(const Ray &ray, Vector3d &norm
 
   // Get nearest intersection point - need to check every single face of the object.
   for (int i = 0; i < this->planes_coeffs_.size(); ++i) {
-    const Vector3d kCurrentNormal(this->planes_coeffs_[i](0),
+    const Vector3d current_normal(this->planes_coeffs_[i](0),
                                   this->planes_coeffs_[i](1),
                                   this->planes_coeffs_[i](2));
-    const double kNumerator = -(this->planes_coeffs_[i].dot(ray_origin));    
-    const double kDenominator = kCurrentNormal.dot(ray.direction);
+    const double numerator = -(this->planes_coeffs_[i].dot(ray_origin));    
+    const double denominator = current_normal.dot(ray.direction);
 
     // Test if the ray and this plane are parallel (or if this plane contains the ray).
     // Returns a negative (dummy) parameter t if this happens.
-    if (math::IsAlmostEqual(kDenominator, 0.0, this->kEps)) {
+    if (math::IsAlmostEqual(denominator, 0.0, this->kEps)) {
       return -1.0;
     }
 
-    double curr_t = kNumerator / kDenominator;
+    double curr_t = numerator / denominator;
     Vector3d intersection_point = ray.origin + curr_t*ray.direction;
     Vector3d barycentric_coords = this->linear_systems_[i]*intersection_point;  // x = A^(-1)*b.
 
@@ -83,8 +83,7 @@ double TriangularObject::GetIntersectionParameter(const Ray &ray, Vector3d &norm
       min_t = curr_t;
       parameters = barycentric_coords;
 
-      normal = kCurrentNormal;
-      normal = normal / normal.norm();
+      (*normal) = current_normal / current_normal.norm();
     }
   }
 

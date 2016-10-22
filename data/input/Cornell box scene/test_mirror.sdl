@@ -1,33 +1,33 @@
 eye 0.0 0.0 7.7
-size 300 150
-ortho -3 -1.5 3 1.5
+size 600 400
+ortho -3 -2 3 2
 ambient 0.1
 ### antialiasing -> 0- desabilitado; 1- habilitado;
 antialiasing 1
 ### lightsamplingtype -> 1- grade; 2- area determina numero de raios randomicos no triangulo;
 lightsamplingtype 2
 
-npaths 7
-maxdepth 3
+npaths 3
+maxdepth 1
 tonemapping 0.0
 seed 9
 
 # pointlight definition
 # x y z     red green blue     intensity
-# pointlight 1.0 3.5 -27     1 1 1     0.8
-# pointlight 1.0 3.5 -23     1 1 1     0.8
-# pointlight -1.0 3.5 -27     1 1 1     0.8
-# pointlight -1.0 3.5 -23     1 1 1     0.8
-#pointlight 0.0 2.0 -15     1 1 1     0.8
+pointlight 1.0 3.5 -27     1 1 1     0.8
+pointlight 1.0 3.5 -23     1 1 1     0.8
+pointlight -1.0 3.5 -27     1 1 1     0.8
+pointlight -1.0 3.5 -23     1 1 1     0.8
+pointlight 0.0 2.0 -15     1 1 1     0.8
 
 # Extensas
-#light luzcornell.obj 1.0 1.0 1.0 0.1 0.8 3.2
+# light luzcornell.obj 1.0 1.0 1.0 0.1 0.8 3.2
 
 # LUZES de silvio
-light lft_luzcornell.obj   1.0 1.0 1.0 0.03 0.8 1
-light rgt_luzcornell.obj   1.0 1.0 1.0 0.03 0.8 1
-light back_luzcornell.obj  1.0 1.0 1.0 0.03 0.8 1
-light front_luzcornell.obj 1.0 1.0 1.0 0.03 0.8 1
+# light lft_luzcornell.obj   1.0 1.0 1.0 0.03 0.8 1
+# light rgt_luzcornell.obj   1.0 1.0 1.0 0.03 0.8 1
+# light back_luzcornell.obj  1.0 1.0 1.0 0.03 0.8 1
+# light front_luzcornell.obj 1.0 1.0 1.0 0.03 0.8 1
 
 
 # object definition

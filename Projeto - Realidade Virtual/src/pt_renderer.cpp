@@ -5,6 +5,11 @@
 using Eigen::Vector3d;
 
 namespace pt {
+namespace {
+
+typedef cv::Vec<double, 6> GeometricInfo;
+
+}
 
 const double PTRenderer::kEps = 1.0e-03;
 
@@ -290,6 +295,45 @@ void PTRenderer::ApplyToneMapping(cv::Mat &image) {
   }
 }
 
+cv::Mat PTRenderer::GetImageGeometricInformation() {
+  int cols = static_cast<int>(this->scene_.camera_.width_);
+  int rows = static_cast<int>(this->scene_.camera_.height_);
+
+  cv::Mat result(rows, cols, CV_32FC(6));
+  double pixel_w = (this->scene_.camera_.top_.x() - this->scene_.camera_.bottom_.x()) /
+                    this->scene_.camera_.width_;
+  double pixel_h = (this->scene_.camera_.top_.y() - this->scene_.camera_.bottom_.y()) /
+                    this->scene_.camera_.height_;
+
+  for (int i = 0; i < rows; ++i) {
+    GeometricInfo *row_ptr = result.ptr<GeometricInfo>(i);
+
+    for (int j = 0; j < cols; ++j) {
+      Vector3d looking_at((this->scene_.camera_.bottom_.x() + pixel_w / 2) + i * pixel_w,
+                          (this->scene_.camera_.top_.y() - pixel_h / 2) - i * pixel_h, 0.0);
+      Vector3d direction = looking_at - this->scene_.camera_.eye_;
+      util::Ray ray(this->scene_.camera_.eye_, direction, 1);
+
+      util::RenderableObject *object;
+      double t;
+      Vector3d normal;
+
+      this->GetNearestObjectAndIntersection(ray, &object, &t, &normal);
+      Vector3d intersection_point = ray.origin + t * ray.direction;
+
+      row_ptr[j][0] = intersection_point.x();
+      row_ptr[j][1] = intersection_point.y();
+      row_ptr[j][2] = intersection_point.z();
+
+      row_ptr[j][3] = normal.x();
+      row_ptr[j][4] = normal.y();
+      row_ptr[j][5] = normal.z();
+    }
+  }
+
+  return result;
+}
+
 void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
                                                  util::RenderableObject **object,
                                                  double *parameter,
@@ -299,7 +343,7 @@ void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
 
   // Objetos descritos por quadrica
   for (int i = 0; i < this->scene_.quadrics_objects_.size(); ++i) {
-    double curr_t = this->scene_.quadrics_objects_[i].GetIntersectionParameter(ray, curr_normal);
+    double curr_t = this->scene_.quadrics_objects_[i].GetIntersectionParameter(ray, &curr_normal);
     
     if (*parameter > curr_t && curr_t > 0.0) {
       *object = &this->scene_.quadrics_objects_[i];
@@ -310,7 +354,7 @@ void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
 
   // Objetos descritos por triangulos
   for (int i = 0; i < this->scene_.triangular_objects_.size(); ++i) {
-    double curr_t = this->scene_.triangular_objects_[i].GetIntersectionParameter(ray, curr_normal);
+    double curr_t = this->scene_.triangular_objects_[i].GetIntersectionParameter(ray, &curr_normal);
     
     if (*parameter > curr_t && curr_t > 0.0) {
       *object = &this->scene_.triangular_objects_[i];
@@ -321,7 +365,7 @@ void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
 
   // Objetos emissivos
   for (int i = 0; i < this->scene_.extense_lights_.size(); ++i) {
-    double curr_t = this->scene_.extense_lights_[i].GetIntersectionParameter(ray, curr_normal);
+    double curr_t = this->scene_.extense_lights_[i].GetIntersectionParameter(ray, &curr_normal);
     
     if (*parameter > curr_t && curr_t > 0.0) {
       *object = &this->scene_.extense_lights_[i];
@@ -340,22 +384,22 @@ double PTRenderer::ScaleLightIntensity(const double light_intensity,
   // Pega o índice do vetor diretor tal que v(idx) não seja zero. Ficou feioso assim, mas dane-se...
   const int idx = shadow_ray.direction(0) != 0 ? 0 : (shadow_ray.direction(1) != 0 ? 1 : 2);
   assert(shadow_ray.direction(idx) != 0);
-  const double kMaxT = (light_position(idx) - shadow_ray.origin(idx)) / shadow_ray.direction(idx);
+  const double max_t = (light_position(idx) - shadow_ray.origin(idx)) / shadow_ray.direction(idx);
 
   for (int i = 0; i < this->scene_.quadrics_objects_.size(); ++i) {
     util::Material obj_material = this->scene_.quadrics_objects_[i].material();
-    double t = this->scene_.quadrics_objects_[i].GetIntersectionParameter(shadow_ray, normal);
+    double t = this->scene_.quadrics_objects_[i].GetIntersectionParameter(shadow_ray, &normal);
 
-    if (t > 0.0 && t < kMaxT) {
+    if (t > 0.0 && t < max_t) {
       final_intensity *= obj_material.k_t;
     }
   }
 
   for (int i = 0; i < this->scene_.triangular_objects_.size(); ++i) {
     util::Material obj_material = this->scene_.triangular_objects_[i].material();
-    double t = this->scene_.triangular_objects_[i].GetIntersectionParameter(shadow_ray, normal);
+    double t = this->scene_.triangular_objects_[i].GetIntersectionParameter(shadow_ray, &normal);
 
-    if (t > 0.0 && t < kMaxT) {
+    if (t > 0.0 && t < max_t) {
       final_intensity *= obj_material.k_t;
     }
   }
@@ -364,11 +408,11 @@ double PTRenderer::ScaleLightIntensity(const double light_intensity,
 }
 
 cv::Mat PTRenderer::RenderScene() {
-  cv::Mat rendered_image(static_cast<int>(this->scene_.camera_.height_),
-                         static_cast<int>(this->scene_.camera_.width_), CV_64FC3);
-  cv::Mat partial_result = cv::Mat::zeros(static_cast<int>(this->scene_.camera_.height_),
-                                          static_cast<int>(this->scene_.camera_.width_),
-                                          CV_64FC3);
+  int rows = static_cast<int>(this->scene_.camera_.height_);
+  int cols = static_cast<int>(this->scene_.camera_.width_);
+
+  cv::Mat rendered_image(rows, cols, CV_64FC3);
+  cv::Mat partial_result(rows, cols, CV_64FC3);
   double pixel_w = (this->scene_.camera_.top_(0) - this->scene_.camera_.bottom_(0)) /
       this->scene_.camera_.width_;
   double pixel_h = (this->scene_.camera_.top_(1) - this->scene_.camera_.bottom_(1)) / 
@@ -457,7 +501,10 @@ cv::Mat PTRenderer::RenderScene() {
   rendered_image = rendered_image / processed_rays;
   cv::imshow("Divided by N_paths", rendered_image);
 
-  cv::ximgproc::amFilter(rendered_image, rendered_image, rendered_image, 3, 0.3);
+  // Get image with geometric information.
+  cv::Mat geometric_information = this->GetImageGeometricInformation();
+
+  cv::ximgproc::amFilter(geometric_information, rendered_image, rendered_image, 3, 0.3);
   cv::imshow("Adaptive Manifold Filter", rendered_image);
 
   //this->ApplyToneMapping(rendered_image);

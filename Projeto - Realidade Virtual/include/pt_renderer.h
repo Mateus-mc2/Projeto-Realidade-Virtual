@@ -41,6 +41,7 @@ class PTRenderer {
 
   Eigen::Vector3d TracePath(const util::Ray &ray);
   void ApplyToneMapping(cv::Mat &image);
+  cv::Mat GetImageGeometricInformation();
   void GetNearestObjectAndIntersection(const util::Ray &ray,
                                        util::RenderableObject **object,
                                        double *parameter,

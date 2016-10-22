@@ -16,7 +16,7 @@ class RenderableObject {
           kEps(1.0e-03) {}
   ~RenderableObject() {}
 
-  virtual double GetIntersectionParameter(const Ray &ray, Eigen::Vector3d &normal) const = 0;
+  virtual double GetIntersectionParameter(const Ray &ray, Eigen::Vector3d *normal) const = 0;
 
   // Accessors
   Material material() const { return this->kMaterial; }
