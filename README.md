@@ -12,4 +12,5 @@ bem como a pasta data/, dentro do diretório da `Solution`.
 Para o Eigen, basta baixar a versão 3.2.9 do [site](http://eigen.tuxfamily.org/ "Eigen"). descompactar o arquivo baixado e renomear a
 pasta descompactada de "Eigen_3.2.9".
 
-Quanto ao OpenCV, o link das dependências do OpenCV estará aqui neste README em breve.
+Quanto ao OpenCV, o link das dependências (já compiladas) é este aqui:
+https://www.dropbox.com/s/1meus788g1mk1kk/OpenCV_3.1.0.zip?dl=0
