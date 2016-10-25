@@ -7,7 +7,7 @@ using Eigen::Vector3d;
 namespace pt {
 namespace {
 
-typedef cv::Vec<double, 6> GeometricInfo;
+typedef cv::Vec<float, 6> GeometricInfo;
 
 }
 
@@ -309,8 +309,10 @@ cv::Mat PTRenderer::GetImageGeometricInformation() {
     GeometricInfo *row_ptr = result.ptr<GeometricInfo>(i);
 
     for (int j = 0; j < cols; ++j) {
-      Vector3d looking_at((this->scene_.camera_.bottom_.x() + pixel_w / 2) + i * pixel_w,
-                          (this->scene_.camera_.top_.y() - pixel_h / 2) - i * pixel_h, 0.0);
+      double x_t = this->distribution_(this->anti_aliasing_generator_);
+      double y_t = this->distribution_(this->anti_aliasing_generator_);
+      Vector3d looking_at((this->scene_.camera_.bottom_.x() + x_t * pixel_w) + i * pixel_w,
+                          (this->scene_.camera_.top_.y() - y_t * pixel_h) - i * pixel_h, 0.0);
       Vector3d direction = looking_at - this->scene_.camera_.eye_;
       util::Ray ray(this->scene_.camera_.eye_, direction, 1);
 
@@ -321,13 +323,13 @@ cv::Mat PTRenderer::GetImageGeometricInformation() {
       this->GetNearestObjectAndIntersection(ray, &object, &t, &normal);
       Vector3d intersection_point = ray.origin + t * ray.direction;
 
-      row_ptr[j][0] = intersection_point.x();
-      row_ptr[j][1] = intersection_point.y();
-      row_ptr[j][2] = intersection_point.z();
+      row_ptr[j][0] = static_cast<float>(intersection_point.x());
+      row_ptr[j][1] = static_cast<float>(intersection_point.y());
+      row_ptr[j][2] = static_cast<float>(intersection_point.z());
 
-      row_ptr[j][3] = normal.x();
-      row_ptr[j][4] = normal.y();
-      row_ptr[j][5] = normal.z();
+      row_ptr[j][3] = static_cast<float>(normal.x());
+      row_ptr[j][4] = static_cast<float>(normal.y());
+      row_ptr[j][5] = static_cast<float>(normal.z());
     }
   }
 
@@ -504,7 +506,7 @@ cv::Mat PTRenderer::RenderScene() {
   // Get image with geometric information.
   cv::Mat geometric_information = this->GetImageGeometricInformation();
 
-  cv::ximgproc::amFilter(geometric_information, rendered_image, rendered_image, 3, 0.3);
+  cv::ximgproc::amFilter(rendered_image, rendered_image, rendered_image, 3, 0.3);
   cv::imshow("Adaptive Manifold Filter", rendered_image);
 
   //this->ApplyToneMapping(rendered_image);

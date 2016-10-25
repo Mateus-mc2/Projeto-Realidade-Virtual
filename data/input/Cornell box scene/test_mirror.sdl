@@ -7,27 +7,27 @@ antialiasing 1
 ### lightsamplingtype -> 1- grade; 2- area determina numero de raios randomicos no triangulo;
 lightsamplingtype 2
 
-npaths 3
-maxdepth 1
+npaths 1
+maxdepth 3
 tonemapping 0.0
 seed 9
 
 # pointlight definition
 # x y z     red green blue     intensity
-pointlight 1.0 3.5 -27     1 1 1     0.8
-pointlight 1.0 3.5 -23     1 1 1     0.8
-pointlight -1.0 3.5 -27     1 1 1     0.8
-pointlight -1.0 3.5 -23     1 1 1     0.8
-pointlight 0.0 2.0 -15     1 1 1     0.8
+# pointlight 1.0 3.5 -27     1 1 1     0.8
+# pointlight 1.0 3.5 -23     1 1 1     0.8
+# pointlight -1.0 3.5 -27     1 1 1     0.8
+# pointlight -1.0 3.5 -23     1 1 1     0.8
+# pointlight 0.0 2.0 -15     1 1 1     0.8
 
 # Extensas
 # light luzcornell.obj 1.0 1.0 1.0 0.1 0.8 3.2
 
 # LUZES de silvio
-# light lft_luzcornell.obj   1.0 1.0 1.0 0.03 0.8 1
-# light rgt_luzcornell.obj   1.0 1.0 1.0 0.03 0.8 1
-# light back_luzcornell.obj  1.0 1.0 1.0 0.03 0.8 1
-# light front_luzcornell.obj 1.0 1.0 1.0 0.03 0.8 1
+light lft_luzcornell.obj   1.0 1.0 1.0 0.03 0.8 1
+light rgt_luzcornell.obj   1.0 1.0 1.0 0.03 0.8 1
+light back_luzcornell.obj  1.0 1.0 1.0 0.03 0.8 1
+light front_luzcornell.obj 1.0 1.0 1.0 0.03 0.8 1
 
 
 # object definition
