@@ -1,7 +1,11 @@
 #include "pt_renderer.h"
 
+#include <fstream>
+#include <sstream>
+
 #include <opencv2/ximgproc/edge_filter.hpp>
 
+using Eigen::Vector2d;
 using Eigen::Vector3d;
 
 namespace pt {
@@ -77,8 +81,8 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
         light_direction =  this->scene_.extense_lights_[i].kVertices[v] - intersection_point;
         light_direction = light_direction / light_direction.norm();
         util::Ray shadow_ray(intersection_point, light_direction, ray.ambient_objs, 1);
-      
-        // Here we compute how much light is blockd by opaque and transparent surfaces, and use the
+
+        // Here we compute how much light is blocked by opaque and transparent surfaces, and use the
         // resulting intensity to scale diffuse and specular terms of the final color.
         double light_intensity = this->ScaleLightIntensity(this->scene_.extense_lights_[i].material().lp,
                                                            this->scene_.extense_lights_[i].kVertices[v],
@@ -131,7 +135,7 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
               light_direction = light_direction / light_direction.norm();
               util::Ray shadow_ray(intersection_point, light_direction, ray.ambient_objs, 1);
       
-              // Here we compute how much light is blockd by opaque and transparent surfaces, and use the
+              // Here we compute how much light is blocked by opaque and transparent surfaces, and use the
               // resulting intensity to scale diffuse and specular terms of the final color.
               double light_intensity = this->ScaleLightIntensity(this->scene_.extense_lights_[i].material().lp,
                                                                  light_origin,
@@ -180,8 +184,8 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
             // Here we compute how much light is blocked by opaque and transparent surfaces, and use the
             // resulting intensity to scale diffuse and specular terms of the final color.
             double light_intensity = this->ScaleLightIntensity(this->scene_.extense_lights_[i].material().lp,
-                                                                light_origin,
-                                                                shadow_ray);
+                                                               light_origin,
+                                                               shadow_ray);
             double cos_theta = normal.dot(light_direction);
 
             if (cos_theta > 0.0) {
@@ -226,23 +230,23 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
     } else {  // Throw a refracted ray
       double n_1;
       double n_2;
-      std::stack<util::RenderableObject*> objs_stack(ray.ambient_objs);
+      std::vector<util::RenderableObject*> objs_stack(ray.ambient_objs);
 
       if (objs_stack.empty()) {  // Scene's ambient refraction coefficient (we're assuming n = 1.0 here).
         n_1 = 1.0;
         n_2 = obj_material.refraction_coeff;
-        objs_stack.push(object);
+        objs_stack.push_back(object);
       } else {  // Ray is getting out of current object.
-        util::RenderableObject* last_obj = objs_stack.top();
+        util::RenderableObject *last_obj = objs_stack.back();
         n_1 = last_obj->material().refraction_coeff;
 
         if (object != last_obj) {
           n_2 = obj_material.refraction_coeff;
-          objs_stack.push(object);
+          objs_stack.push_back(object);
         } else {
-          objs_stack.pop();
-          n_2 = objs_stack.top()->material().refraction_coeff;
-        }        
+          objs_stack.pop_back();
+          n_2 = objs_stack.empty() ? 1.0 : objs_stack.back()->material().refraction_coeff;
+        }
       }
 
       double cos_theta_incident = normal.dot(-ray.direction);
@@ -285,56 +289,48 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
   }
 }
 
-void PTRenderer::ApplyToneMapping(cv::Mat &image) {
-  for (int i = 0; i < image.rows; ++i) {
-    for (int j = 0; j < image.cols; ++j) {
-      image.at<cv::Vec3d>(i, j)[0] /= image.at<cv::Vec3d>(i, j)[0] + this->scene_.tone_mapping_;
-      image.at<cv::Vec3d>(i, j)[1] /= image.at<cv::Vec3d>(i, j)[1] + this->scene_.tone_mapping_;
-      image.at<cv::Vec3d>(i, j)[2] /= image.at<cv::Vec3d>(i, j)[2] + this->scene_.tone_mapping_;
-    }
-  }
-}
-
-cv::Mat PTRenderer::GetImageGeometricInformation() {
-  int cols = static_cast<int>(this->scene_.camera_.width_);
-  int rows = static_cast<int>(this->scene_.camera_.height_);
-
-  cv::Mat result(rows, cols, CV_32FC(6));
-  double pixel_w = (this->scene_.camera_.top_.x() - this->scene_.camera_.bottom_.x()) /
-                    this->scene_.camera_.width_;
-  double pixel_h = (this->scene_.camera_.top_.y() - this->scene_.camera_.bottom_.y()) /
-                    this->scene_.camera_.height_;
-
-  for (int i = 0; i < rows; ++i) {
-    GeometricInfo *row_ptr = result.ptr<GeometricInfo>(i);
-
-    for (int j = 0; j < cols; ++j) {
-      double x_t = this->distribution_(this->anti_aliasing_generator_);
-      double y_t = this->distribution_(this->anti_aliasing_generator_);
-      Vector3d looking_at((this->scene_.camera_.bottom_.x() + x_t * pixel_w) + i * pixel_w,
-                          (this->scene_.camera_.top_.y() - y_t * pixel_h) - i * pixel_h, 0.0);
-      Vector3d direction = looking_at - this->scene_.camera_.eye_;
-      util::Ray ray(this->scene_.camera_.eye_, direction, 1);
-
-      util::RenderableObject *object;
-      double t;
-      Vector3d normal;
-
-      this->GetNearestObjectAndIntersection(ray, &object, &t, &normal);
-      Vector3d intersection_point = ray.origin + t * ray.direction;
-
-      row_ptr[j][0] = static_cast<float>(intersection_point.x());
-      row_ptr[j][1] = static_cast<float>(intersection_point.y());
-      row_ptr[j][2] = static_cast<float>(intersection_point.z());
-
-      row_ptr[j][3] = static_cast<float>(normal.x());
-      row_ptr[j][4] = static_cast<float>(normal.y());
-      row_ptr[j][5] = static_cast<float>(normal.z());
-    }
-  }
-
-  return result;
-}
+//cv::Mat PTRenderer::GetImageGeometricInformation() {
+//  int cols = static_cast<int>(this->scene_.camera_.width_);
+//  int rows = static_cast<int>(this->scene_.camera_.height_);
+//
+//  cv::Mat result(rows, cols, CV_32FC(6));
+//
+//  double pixel_w = (this->scene_.camera_.top_.x() - this->scene_.camera_.bottom_.x()) /
+//                    this->scene_.camera_.width_;
+//  double pixel_h = (this->scene_.camera_.top_.y() - this->scene_.camera_.bottom_.y()) /
+//                    this->scene_.camera_.height_;
+//
+//  for (int i = 0; i < rows; ++i) {
+//    GeometricInfo *row_ptr = result.ptr<GeometricInfo>(i);
+//
+//    for (int j = 0; j < cols; ++j) {
+//      double x_t = this->distribution_(this->anti_aliasing_generator_);
+//      double y_t = this->distribution_(this->anti_aliasing_generator_);
+//      Vector3d looking_at((this->scene_.camera_.bottom_.x() + x_t * pixel_w) + j * pixel_w,
+//                          (this->scene_.camera_.top_.y() - y_t * pixel_h) - i * pixel_h, 0.0);
+//      Vector3d direction = looking_at - this->scene_.camera_.eye_;
+//      direction = direction / direction.norm();
+//      util::Ray ray(this->scene_.camera_.eye_, direction, 1);
+//
+//      util::RenderableObject *object;
+//      double t;
+//      Vector3d normal;
+//
+//      this->GetNearestObjectAndIntersection(ray, &object, &t, &normal);
+//      Vector3d intersection_point = ray.origin + t * ray.direction;
+//
+//      row_ptr[j][0] = static_cast<float>(intersection_point.x());
+//      row_ptr[j][1] = static_cast<float>(intersection_point.y());
+//      row_ptr[j][2] = static_cast<float>(intersection_point.z());
+//
+//      row_ptr[j][3] = static_cast<float>(normal.x());
+//      row_ptr[j][4] = static_cast<float>(normal.y());
+//      row_ptr[j][5] = static_cast<float>(normal.z());
+//    }
+//  }
+//
+//  return result;
+//}
 
 void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
                                                  util::RenderableObject **object,
@@ -347,7 +343,7 @@ void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
   for (int i = 0; i < this->scene_.quadrics_objects_.size(); ++i) {
     double curr_t = this->scene_.quadrics_objects_[i].GetIntersectionParameter(ray, &curr_normal);
     
-    if (*parameter > curr_t && curr_t > 0.0) {
+    if (*parameter > curr_t && curr_t > this->kEps) {
       *object = &this->scene_.quadrics_objects_[i];
       *parameter = curr_t;
       *normal = curr_normal;
@@ -357,8 +353,8 @@ void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
   // Objetos descritos por triangulos
   for (int i = 0; i < this->scene_.triangular_objects_.size(); ++i) {
     double curr_t = this->scene_.triangular_objects_[i].GetIntersectionParameter(ray, &curr_normal);
-    
-    if (*parameter > curr_t && curr_t > 0.0) {
+
+    if (*parameter > curr_t && curr_t > this->kEps) {
       *object = &this->scene_.triangular_objects_[i];
       *parameter = curr_t;
       *normal = curr_normal;
@@ -368,7 +364,7 @@ void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
   // Objetos emissivos
   for (int i = 0; i < this->scene_.extense_lights_.size(); ++i) {
     double curr_t = this->scene_.extense_lights_[i].GetIntersectionParameter(ray, &curr_normal);
-    
+
     if (*parameter > curr_t && curr_t > 0.0) {
       *object = &this->scene_.extense_lights_[i];
       *parameter = curr_t;
@@ -378,7 +374,7 @@ void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
 }
 
 
-double PTRenderer::ScaleLightIntensity(const double light_intensity,
+double PTRenderer::ScaleLightIntensity(double light_intensity,
                                        const Eigen::Vector3d &light_position,
                                        const util::Ray &shadow_ray) {
   double final_intensity = light_intensity;
@@ -388,8 +384,8 @@ double PTRenderer::ScaleLightIntensity(const double light_intensity,
   assert(shadow_ray.direction(idx) != 0);
   const double max_t = (light_position(idx) - shadow_ray.origin(idx)) / shadow_ray.direction(idx);
 
-  for (int i = 0; i < this->scene_.quadrics_objects_.size(); ++i) {
-    util::Material obj_material = this->scene_.quadrics_objects_[i].material();
+  for (int i = 0; i < this->scene_.quadrics_objects_.size() && final_intensity > 0; ++i) {
+    const util::Material &obj_material = this->scene_.quadrics_objects_[i].material();
     double t = this->scene_.quadrics_objects_[i].GetIntersectionParameter(shadow_ray, &normal);
 
     if (t > 0.0 && t < max_t) {
@@ -397,8 +393,8 @@ double PTRenderer::ScaleLightIntensity(const double light_intensity,
     }
   }
 
-  for (int i = 0; i < this->scene_.triangular_objects_.size(); ++i) {
-    util::Material obj_material = this->scene_.triangular_objects_[i].material();
+  for (int i = 0; i < this->scene_.triangular_objects_.size() && final_intensity > 0; ++i) {
+    const util::Material &obj_material = this->scene_.triangular_objects_[i].material();
     double t = this->scene_.triangular_objects_[i].GetIntersectionParameter(shadow_ray, &normal);
 
     if (t > 0.0 && t < max_t) {
@@ -415,6 +411,8 @@ cv::Mat PTRenderer::RenderScene() {
 
   cv::Mat rendered_image(rows, cols, CV_64FC3);
   cv::Mat partial_result(rows, cols, CV_64FC3);
+  cv::Mat geometric_information(rows, cols, CV_32FC(6));
+
   double pixel_w = (this->scene_.camera_.top_(0) - this->scene_.camera_.bottom_(0)) /
       this->scene_.camera_.width_;
   double pixel_h = (this->scene_.camera_.top_(1) - this->scene_.camera_.bottom_(1)) / 
@@ -422,12 +420,13 @@ cv::Mat PTRenderer::RenderScene() {
   int percent;
   int processed_rays = this->scene_.nmbr_paths_;
 
-  if (this->scene_.antialiasing_) {  // Com anti-aliasing
+  if (this->scene_.antialiasing_) {  //\ Com anti-aliasing
     for (int i = 0; i < this->scene_.nmbr_paths_; ++i) {
       // Dispara um raio n vezes em um local randomico dentro do pixel
       #pragma omp parallel for
       for (int j = 0; j < rendered_image.rows; ++j) {
-        cv::Vec3d *row_ptr = rendered_image.ptr<cv::Vec3d>(j);
+        cv::Vec3d *img_row_ptr = rendered_image.ptr<cv::Vec3d>(j);
+        GeometricInfo *info_row_ptr = geometric_information.ptr<GeometricInfo>(j);
 
         for (int k = 0; k < rendered_image.cols; ++k) {
           double x_t = this->distribution_(this->anti_aliasing_generator_);
@@ -438,12 +437,29 @@ cv::Mat PTRenderer::RenderScene() {
           Vector3d direction = looking_at - this->scene_.camera_.eye_;
           direction = direction / direction.norm();
 
+          // Perform path tracing.
           util::Ray ray(this->scene_.camera_.eye_, direction, 1);
           Vector3d additional_color = this->TracePath(ray);
 
-          row_ptr[k][0] += additional_color(2);
-          row_ptr[k][1] += additional_color(1);
-          row_ptr[k][2] += additional_color(0);
+          img_row_ptr[k][0] += additional_color(2);
+          img_row_ptr[k][1] += additional_color(1);
+          img_row_ptr[k][2] += additional_color(0);
+
+          // Gather geometric information.
+          util::RenderableObject *object;
+          double t;
+          Vector3d normal;
+
+          this->GetNearestObjectAndIntersection(ray, &object, &t, &normal);
+          Vector3d intersection_point = ray.origin + t * ray.direction;
+
+          info_row_ptr[k][0] = static_cast<float>(intersection_point.x());
+          info_row_ptr[k][1] = static_cast<float>(intersection_point.y());
+          info_row_ptr[k][2] = static_cast<float>(intersection_point.z());
+
+          info_row_ptr[k][3] = static_cast<float>(normal.x());
+          info_row_ptr[k][4] = static_cast<float>(normal.y());
+          info_row_ptr[k][5] = static_cast<float>(normal.z());
         }
       }
 
@@ -467,6 +483,7 @@ cv::Mat PTRenderer::RenderScene() {
       #pragma omp parallel for
       for (int j = 0; j < rendered_image.rows; ++j) {
         cv::Vec3d *row_ptr = rendered_image.ptr<cv::Vec3d>(j);
+        GeometricInfo *info_row_ptr = geometric_information.ptr<GeometricInfo>(j);
 
         for (int k = 0; k < rendered_image.cols; ++k) {
           Vector3d looking_at((this->scene_.camera_.bottom_(0) + pixel_w / 2) + k*pixel_w,
@@ -475,12 +492,29 @@ cv::Mat PTRenderer::RenderScene() {
           Vector3d direction = looking_at - this->scene_.camera_.eye_;
           direction = direction / direction.norm();
 
+          // Perform path tracing.
           util::Ray ray(this->scene_.camera_.eye_, direction, 1);
           Vector3d additional_color = this->TracePath(ray);
 
           row_ptr[k][0] += additional_color(2);
           row_ptr[k][1] += additional_color(1);
           row_ptr[k][2] += additional_color(0);
+
+          // Gather geometric information.
+          util::RenderableObject *object;
+          double t;
+          Vector3d normal;
+
+          this->GetNearestObjectAndIntersection(ray, &object, &t, &normal);
+          Vector3d intersection_point = ray.origin + t * ray.direction;
+
+          info_row_ptr[k][0] = static_cast<float>(intersection_point.x());
+          info_row_ptr[k][1] = static_cast<float>(intersection_point.y());
+          info_row_ptr[k][2] = static_cast<float>(intersection_point.z());
+
+          info_row_ptr[k][3] = static_cast<float>(normal.x());
+          info_row_ptr[k][4] = static_cast<float>(normal.y());
+          info_row_ptr[k][5] = static_cast<float>(normal.z());
         }
       }
 
@@ -490,7 +524,7 @@ cv::Mat PTRenderer::RenderScene() {
       std::cout << std::string(percent/10, '@') << std::string(10 - percent/10, '=');
       std::cout.flush();
 
-      partial_result = rendered_image / i;
+      partial_result = i == 0 ? rendered_image : rendered_image / i;
       cv::imshow("Partial result", partial_result);
 
       if (cv::waitKey(1) == 13) {
@@ -503,10 +537,9 @@ cv::Mat PTRenderer::RenderScene() {
   rendered_image = rendered_image / processed_rays;
   cv::imshow("Divided by N_paths", rendered_image);
 
-  // Get image with geometric information.
-  cv::Mat geometric_information = this->GetImageGeometricInformation();
-
-  cv::ximgproc::amFilter(rendered_image, rendered_image, rendered_image, 3, 0.3);
+  const int N = 2;
+  for (int i = 0; i < N; ++i)
+    cv::ximgproc::amFilter(geometric_information, rendered_image, rendered_image, 12.401, 0.8102, true);
   cv::imshow("Adaptive Manifold Filter", rendered_image);
 
   //this->ApplyToneMapping(rendered_image);

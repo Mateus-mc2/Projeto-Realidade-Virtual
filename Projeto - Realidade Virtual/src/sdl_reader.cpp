@@ -3,7 +3,7 @@
 
 namespace io {
 util::SDLObject SDLReader::ReadSDL(const std::string &file_directory,
-                                    const std::string &file_name) {
+                                   const std::string &file_name) {
   // Preparar todas as variaveis que receberao os dados para a criacao do sdl_object
   std::string                         output_name;
   Eigen::Vector3d                     eye;

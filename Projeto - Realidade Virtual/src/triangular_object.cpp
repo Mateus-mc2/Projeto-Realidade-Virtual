@@ -20,26 +20,26 @@ TriangularObject::TriangularObject(const Material &material,
   for (int i = 0; i < num_faces; ++i) {
     // Get plane equation (coefficients) - we are assuming the .obj files provide us the 
     // correct orientation of the vertices.
-    const Vector3d kA = vertices[faces[i](0)];
-    const Vector3d kB = vertices[faces[i](1)];
-    const Vector3d kC = vertices[faces[i](2)];
+    const Vector3d a = vertices[faces[i](0)];
+    const Vector3d b = vertices[faces[i](1)];
+    const Vector3d c = vertices[faces[i](2)];
 
-    const Vector3d kAB = kB - kA;
-    const Vector3d kAC = kC - kA;
-    const Vector3d kNormal = kAB.cross(kAC);
+    const Vector3d ab = b - a;
+    const Vector3d ac = c - a;
+    const Vector3d normal = ab.cross(ac);
 
-    assert(!(math::IsAlmostEqual(kNormal(0), 0.0, this->kEps) &&
-             math::IsAlmostEqual(kNormal(1), 0.0, this->kEps) &&
-             math::IsAlmostEqual(kNormal(2), 0.0, this->kEps)));
+    assert(!(math::IsAlmostEqual(normal(0), 0.0, this->kEps) &&
+             math::IsAlmostEqual(normal(1), 0.0, this->kEps) &&
+             math::IsAlmostEqual(normal(2), 0.0, this->kEps)));
 
     // The last coefficient is the additive inverse of the dot product of kA and kNormal.
-    this->planes_coeffs_[i] << kNormal(0), kNormal(1), kNormal(2), -kNormal.dot(kA);
+    this->planes_coeffs_[i] << normal(0), normal(1), normal(2), -normal.dot(a);
 
     // Get system's inverse matrix.
     Matrix3d linear_system;
-    linear_system << kA(0), kB(0), kC(0),
-                     kA(1), kB(1), kC(1), 
-                     kA(2), kB(2), kC(2);
+    linear_system << a(0), b(0), c(0),
+                     a(1), b(1), c(1), 
+                     a(2), b(2), c(2);
     this->linear_systems_[i] = linear_system.inverse();
   }
 }
@@ -66,7 +66,7 @@ double TriangularObject::GetIntersectionParameter(const Ray &ray, Vector3d *norm
     const Vector3d current_normal(this->planes_coeffs_[i](0),
                                   this->planes_coeffs_[i](1),
                                   this->planes_coeffs_[i](2));
-    const double numerator = -(this->planes_coeffs_[i].dot(ray_origin));    
+    const double numerator = -(this->planes_coeffs_[i].dot(ray_origin));
     const double denominator = current_normal.dot(ray.direction);
 
     // Test if the ray and this plane are parallel (or if this plane contains the ray).

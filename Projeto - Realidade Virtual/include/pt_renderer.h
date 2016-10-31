@@ -40,13 +40,12 @@ class PTRenderer {
   static const double kEps;
 
   Eigen::Vector3d TracePath(const util::Ray &ray);
-  void ApplyToneMapping(cv::Mat &image);
-  cv::Mat GetImageGeometricInformation();
+  //cv::Mat GetImageGeometricInformation();
   void GetNearestObjectAndIntersection(const util::Ray &ray,
                                        util::RenderableObject **object,
                                        double *parameter,
                                        Eigen::Vector3d *normal);
-  double ScaleLightIntensity(const double light_intensity,
+  double ScaleLightIntensity(double light_intensity,
                              const Eigen::Vector3d &light_position,
                              const util::Ray &shadow_ray);
 

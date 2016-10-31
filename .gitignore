@@ -45,7 +45,9 @@
 *.vsp
 *.vspx
 *.sap
+*.user
 
 bin/
+data/output/
 dependencies/
 */intermediate/

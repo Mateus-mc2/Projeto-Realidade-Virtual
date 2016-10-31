@@ -38,7 +38,7 @@ double Quadric::GetIntersectionParameter(const Ray &ray, Vector3d *normal) const
   double f = this->coefficients_(this->kCoeffF);
   double g = this->coefficients_(this->kCoeffG);
   double h = this->coefficients_(this->kCoeffH);
-  
+
   double p = this->coefficients_(this->kCoeffP);
   double q = this->coefficients_(this->kCoeffQ);
   double r = this->coefficients_(this->kCoeffR);
@@ -102,12 +102,12 @@ double Quadric::GetIntersectionParameter(const Ray &ray, Vector3d *normal) const
   if (!(math::IsAlmostEqual((*normal)(0), 0.0, this->kEps) &&
         math::IsAlmostEqual((*normal)(1), 0.0, this->kEps) &&
         math::IsAlmostEqual((*normal)(2), 0.0, this->kEps))) {
-	(*normal) = (*normal) / normal->norm();
+    (*normal) = (*normal) / normal->norm();
   }
 
   if (t < this->kEps) {  // If it's negative or almost zero.
     return -1.0;
-  } else {    
+  } else {
     return t;
   }
 }

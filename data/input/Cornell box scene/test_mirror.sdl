@@ -7,8 +7,8 @@ antialiasing 1
 ### lightsamplingtype -> 1- grade; 2- area determina numero de raios randomicos no triangulo;
 lightsamplingtype 2
 
-npaths 1
-maxdepth 3
+npaths 3
+maxdepth 1
 tonemapping 0.0
 seed 9
 
