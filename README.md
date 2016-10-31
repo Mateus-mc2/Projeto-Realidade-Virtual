@@ -11,5 +11,5 @@ Eigen (versão 3.2.9) e do OpenCV (versão 3.1.0) na pasta dependencies/ (deve-s
 Para o Eigen, basta baixar a versão 3.2.9 do [site](http://eigen.tuxfamily.org/ "Eigen"). descompactar o arquivo baixado e renomear a
 pasta descompactada de "Eigen_3.2.9".
 
-Quanto ao OpenCV, o link das dependências (já compiladas)s é este aqui:
+Quanto ao OpenCV, o link das dependências (já compiladas) é este aqui:
 https://www.dropbox.com/s/1meus788g1mk1kk/OpenCV_3.1.0.zip?dl=0
