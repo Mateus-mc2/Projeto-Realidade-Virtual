@@ -98,10 +98,8 @@
     <ClInclude Include="include\gpu_path_tracer.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="gpu_path_tracer.cu">
-      <Filter>Source Files\gpu</Filter>
-    </None>
+    <ClInclude Include="include\gpu_matrix.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

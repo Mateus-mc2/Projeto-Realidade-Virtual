@@ -45,7 +45,7 @@
 *.vsp
 *.vspx
 *.sap
-*.user
+*.pdb
 
 bin/
 data/output/

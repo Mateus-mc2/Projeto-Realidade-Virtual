@@ -10,6 +10,7 @@
 #include <opencv2\imgproc\imgproc.hpp>
 #include <opencv2\highgui\highgui.hpp>
 
+#include "gpu_matrix.h"
 #include "pt_renderer.h"
 #include "pnm_writer.h"
 #include "sdl_reader.h"

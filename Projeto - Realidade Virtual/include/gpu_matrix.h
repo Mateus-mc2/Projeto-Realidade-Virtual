@@ -122,13 +122,13 @@ __device__ template<class T> GPUMatrix<T> operator-(const GPUMatrix<T> &rhs) {
   A -= rhs;
   return A;
 }
-__device__ template<class T> GPUMatrix operator*(const GPUMatrix<T> &lhs,
+__device__ template<class T> GPUMatrix<T> operator*(const GPUMatrix<T> &lhs,
                                                  const GPUMatrix<T> &rhs) {
   GPUMatrix A = lhs;
   A *= rhs;
   return A;
 }
-__device__ template<class T> GPUMatrix operator^(const GPUMatrix<T> &lhs,
+__device__ template<class T> GPUMatrix<T> operator^(const GPUMatrix<T> &lhs,
                                                  const GPUMatrix<T> &rhs) {
   GPUMatrix A = lhs;
   A ^= rhs;
