@@ -25,7 +25,7 @@ namespace pt {
 
 class PTRenderer {
  public:
-  PTRenderer(const util::SDLObject &scene)
+  explicit PTRenderer(const util::SDLObject &scene)
       : scene_(scene),
         generator_(std::default_random_engine(scene.random_seed_)),
         ray_generator_(std::default_random_engine(scene.random_seed_)),

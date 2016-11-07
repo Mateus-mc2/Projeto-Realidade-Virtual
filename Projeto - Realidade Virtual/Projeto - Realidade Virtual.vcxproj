@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\camera.h" />
+    <ClInclude Include="include\gpu_path_tracer.h" />
     <ClInclude Include="include\light.h" />
     <ClInclude Include="include\material.h" />
     <ClInclude Include="include\math_lib.h" />
@@ -35,6 +36,9 @@
     <ClInclude Include="include\sdl_reader.h" />
     <ClInclude Include="include\triangular_object.h" />
     <ClInclude Include="include\util_exception.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="gpu_path_tracer.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A9306560-758D-43E0-A053-91661F7824DC}</ProjectGuid>
@@ -57,6 +61,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 8.0.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -105,5 +110,6 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 8.0.targets" />
   </ImportGroup>
 </Project>
