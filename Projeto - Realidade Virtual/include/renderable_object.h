@@ -12,14 +12,14 @@ class RenderableObject {
  public:
   RenderableObject(const Material &material, bool is_emissive)
       :  kMaterial(material),
-          kEmissive(is_emissive),
-          kEps(1.0e-03) {}
+         kEmissive(is_emissive),
+         kEps(1.0e-03) {}
   ~RenderableObject() {}
 
   virtual double GetIntersectionParameter(const Ray &ray, Eigen::Vector3d *normal) const = 0;
 
   // Accessors
-  Material material() const { return this->kMaterial; }
+  const Material& material() const { return this->kMaterial; }
   bool emissive() const { return this->kEmissive; }
 
  protected:

@@ -463,14 +463,11 @@ cv::Mat PTRenderer::RenderScene() {
         }
       }
 
-      percent = int(100.0*(double(i) / this->scene_.nmbr_paths_));
+      percent = static_cast<int>(100.0*(double(i) / this->scene_.nmbr_paths_));
 
-      std::cout << "\r" << percent << "% completed ("<<i<<" raios): ";
+      std::cout << "\r" << percent << "% completed (" << i << " rays): ";
       std::cout << std::string(percent/10, '@') << std::string(10 - percent/10, '=');
       std::cout.flush();
-
-      partial_result = rendered_image / i;
-      cv::imshow("Partial result", partial_result);
 
       if (cv::waitKey(1) == 13) {
         processed_rays = i+1;
@@ -518,14 +515,11 @@ cv::Mat PTRenderer::RenderScene() {
         }
       }
 
-      percent = int(100.0*(double(i) / this->scene_.nmbr_paths_));
+      percent = static_cast<int>(100.0 * (double(i) / this->scene_.nmbr_paths_));
 
-      std::cout << "\r" << percent << "% completed ("<<i<<" raios): ";
+      std::cout << "\r" << percent << "% completed (" << i << " rays): ";
       std::cout << std::string(percent/10, '@') << std::string(10 - percent/10, '=');
       std::cout.flush();
-
-      partial_result = i == 0 ? rendered_image : rendered_image / i;
-      cv::imshow("Partial result", partial_result);
 
       if (cv::waitKey(1) == 13) {
         processed_rays = i+1;
@@ -534,21 +528,16 @@ cv::Mat PTRenderer::RenderScene() {
     }
   }
 
+  std::cout << "\r100% completed (" << this->scene_.nmbr_paths_ << " rays): ";
+  std::cout << std::string(10, '@') << std::endl;
+
   rendered_image = rendered_image / processed_rays;
-  cv::imshow("Divided by N_paths", rendered_image);
 
   const int N = 2;
   for (int i = 0; i < N; ++i)
     cv::ximgproc::amFilter(geometric_information, rendered_image, rendered_image, 12.401, 0.8102, true);
-  cv::imshow("Adaptive Manifold Filter", rendered_image);
 
-  //this->ApplyToneMapping(rendered_image);
-  //cv::imshow("tone_mapped image", rendered_image);
-
-  std::cout << "Aperte alguma tecla para fechar as imagens" << std::endl;
-  cv::waitKey(0);
-
-  return rendered_image*255;
+  return rendered_image;
 }
 
 }  // namespace pt

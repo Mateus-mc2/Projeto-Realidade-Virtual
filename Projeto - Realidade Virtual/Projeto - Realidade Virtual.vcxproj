@@ -24,6 +24,7 @@
     <ClInclude Include="include\camera.h" />
     <ClInclude Include="include\gpu_matrix.h" />
     <ClInclude Include="include\gpu_path_tracer.h" />
+    <ClInclude Include="include\gpu_template_matrix.h" />
     <ClInclude Include="include\light.h" />
     <ClInclude Include="include\material.h" />
     <ClInclude Include="include\math_lib.h" />

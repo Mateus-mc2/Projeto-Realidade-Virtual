@@ -101,5 +101,8 @@
     <ClInclude Include="include\gpu_matrix.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
+    <ClInclude Include="include\gpu_template_matrix.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

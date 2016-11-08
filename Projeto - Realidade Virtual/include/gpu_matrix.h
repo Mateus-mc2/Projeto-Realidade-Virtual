@@ -1,10 +1,8 @@
 #ifndef GPU_MATRIX_H_
 #define GPU_MATRIX_H_
 
-#include <thrust/copy.h>
 #include <thrust/count.h>
 #include <thrust/device_vector.h>
-#include <thrust/execution_policy.h>
 #include <thrust/fill.h>
 #include <thrust/functional.h>
 #include <thrust/host_vector.h>
@@ -15,8 +13,7 @@ namespace gpu {
 template<typename T>
 class GPUMatrix {
  public:
-  // TODO(Mateus): it currently needs to check dimensions right before initialization. Find a
-  // better approach later.
+  // TODO(Mateus): it currently does not check dimensions. Find a better approach later.
   __device__ GPUMatrix(const thrust::device_vector<T> &data, int rows, int cols)
       : data_(data),
         rows_(rows),
@@ -25,7 +22,7 @@ class GPUMatrix {
   __device__ ~GPUMatrix() {}
 
   __device__ static GPUMatrix<T> Zeros(int rows, int cols) {
-    thrust::device_vector<T> data(rows * cols, 0);
+    thrust::device_vector<T> data(rows * cols, T());
     return GPUMatrix<T>(data, rows, cols);
   };
 
@@ -80,12 +77,11 @@ class GPUMatrix {
   }
 
   __device__ int CountNonZeros() {
-    int count = thrust::count(thrust::device, this->data_.begin(),
-                              this->data_.begin() + this->rows_ * this->cols_, 0);
+    int count = thrust::count(this->data_.begin(), this->data_.end(), 0);
     return (this->rows_ * this->cols_) - count;
   }
 
-  thrust::device_vector<T> data() const { return this->data_; }
+  const thrust::device_vector<T>& data() const { return this->data_; }
   int rows() const { return this->rows_; }
   int cols() const { return this->cols_; }
 
@@ -105,32 +101,34 @@ __device__ template<class T> bool operator!=(const GPUMatrix<T> &lhs, const GPUM
 
 __device__ template<class T> GPUMatrix<T> operator+(const GPUMatrix<T> &lhs,
                                                     const GPUMatrix<T> &rhs) {
-  GPUMatrix A = lhs;
+  GPUMatrix<T> A = lhs;
   A += rhs;
   return A;
 }
 
 __device__ template<class T> GPUMatrix<T> operator-(const GPUMatrix<T> &lhs,
                                                     const GPUMatrix<T> &rhs) {
-  GPUMatrix A = lhs;
+  GPUMatrix<T> A = lhs;
   A -= rhs;
   return A;
 }
 
 __device__ template<class T> GPUMatrix<T> operator-(const GPUMatrix<T> &rhs) {
-  GPUMatrix A = GPUMatrix::Zeros(rhs.rows(), rhs.cols());
+  GPUMatrix<T> A = GPUMatrix<T>::Zeros(rhs.rows(), rhs.cols());
   A -= rhs;
   return A;
 }
+
 __device__ template<class T> GPUMatrix<T> operator*(const GPUMatrix<T> &lhs,
-                                                 const GPUMatrix<T> &rhs) {
-  GPUMatrix A = lhs;
+                                                    const GPUMatrix<T> &rhs) {
+  GPUMatrix<T> A = lhs;
   A *= rhs;
   return A;
 }
+
 __device__ template<class T> GPUMatrix<T> operator^(const GPUMatrix<T> &lhs,
-                                                 const GPUMatrix<T> &rhs) {
-  GPUMatrix A = lhs;
+                                                    const GPUMatrix<T> &rhs) {
+  GPUMatrix<T> A = lhs;
   A ^= rhs;
   return A;
 }

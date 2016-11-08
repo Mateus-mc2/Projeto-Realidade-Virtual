@@ -14,7 +14,7 @@ class InvalidMaterialCoefficientsException : public UtilException {
 struct Material {
   Material () {}
   Material(double r, double g, double b, double refraction_coeff, double k_a, double k_d,
-           double k_s, double k_t, int n, double lp, double light_sampling_step,
+           double k_s, double k_t, double n, double lp, double light_sampling_step,
            double light_density);
   ~Material() {}
 
@@ -28,7 +28,7 @@ struct Material {
   double k_d;  // Coeficiente de reflexão difusa.
   double k_s;  // Coeficiente de reflexão especular.
   double k_t;  // Coeficiente de transparência.
-  int n;       // Expoente de reflexão especular.
+  double n;       // Expoente de reflexão especular.
 
   // Relevantes aos objetos luminosos
   double lp;

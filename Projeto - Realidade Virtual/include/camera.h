@@ -5,8 +5,6 @@
 
 namespace util {
 
-typedef Eigen::Matrix<double, 3, 4> CameraMatrix;
-
 struct Camera {
   Camera() {}
   Camera(const Eigen::Vector3d &eye, const Eigen::Vector2d &bottom, const Eigen::Vector2d &top,

@@ -3,7 +3,7 @@
 namespace util {
 
 Material::Material(double r, double g, double b, double refraction_coeff, double k_a, double k_d,
-                   double k_s, double k_t, int n, double lp, double light_sampling_step,
+                   double k_s, double k_t, double n, double lp, double light_sampling_step,
                    double light_density)
                    :  red(r),
                       green(g),
