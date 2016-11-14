@@ -15,55 +15,68 @@ template<typename T, int R, int C>
 class GPUTemplateMatrix {
  public:
   __device__ GPUTemplateMatrix() : data_(R * C) {}
-  __device__ GPUTemplateMatrix(const GPUTemplateMatrix<T, R, C> &M) : data_(M.data()) {}
+  __device__ GPUTemplateMatrix(const GPUTemplateMatrix<T, R, C> &matrix) : data_(matrix.data()) {}
   __device__ ~GPUTemplateMatrix() {}
 
   __device__ T& operator()(int i, int j) {
     return this->data_[i * C + j];
   }
 
-  __device__ GPUTemplateMatrix<T, R, C>& operator=(const GPUTemplateMatrix &M) {
-    if (this != &M) {
-      this->data_ = M.data();
+  __device__ GPUTemplateMatrix<T, R, C>& operator=(const GPUTemplateMatrix<T, R, C> &matrix) {
+    if (this != &matrix) {
+      this->data_ = matrix.data();
     }
 
     return *this;
   }
 
-  __device__ GPUTemplateMatrix<T, R, C>& operator+=(const GPUTemplateMatrix<T, R, C> &M) {
-    thrust::transform(this->data_.begin(), this->data_.end(), M.data().begin(),
+  __device__ GPUTemplateMatrix<T, R, C>& operator+=(const GPUTemplateMatrix<T, R, C> &matrix) {
+    thrust::transform(this->data_.begin(), this->data_.end(), matrix.data().begin(),
                       this->data_.begin(), thrust::plus<T>());
     return *this;
   }
 
-  __device__ GPUTemplateMatrix<T, R, C>& operator-=(const GPUTemplateMatrix<T, R, C> &M) {
-    thrust::transform(this->data_.begin(), this->data_.end(), M.data().begin(),
+  __device__ GPUTemplateMatrix<T, R, C>& operator-=(const GPUTemplateMatrix<T, R, C> &matrix) {
+    thrust::transform(this->data_.begin(), this->data_.end(), matrix.data().begin(),
                       this->data_.begin(), thrust::minus<T>());
     return *this;
   }
 
-  __device__ GPUTemplateMatrix<T, R, C>& operator^=(const GPUTemplateMatrix<T, R, C> &M) {
-    thrust::transform(this->data_.begin(), this->data_.end(), M.data().begin(),
+  __device__ GPUTemplateMatrix<T, R, C>& operator^=(const GPUTemplateMatrix<T, R, C> &matrix) {
+    thrust::transform(this->data_.begin(), this->data_.end(), matrix.data().begin(),
                       this->data_.begin(), thrust::bit_xor<T>());
     return *this;
+  }
+
+  __device__ void Copy(const thrust::device_vector<T> &data) {
+    thrust::copy_n(data.begin(), R * C, this->data_.begin());
+  }
+
+  __device__ int CountNonZeros() {
+    int count = thrust::count(this->data_.begin(), this->data_.end(), 0);
+    return count - R * C;
   }
 
   __device__ void Fill(const T &val) {
     thrust::fill_n(this->data_.begin(), R * C, val);
   }
 
-  __device__ void Copy(const thrust::device_vector<T> &data) {
-    thrust::copy_n(data.begin(), R * C, this->data_.begin());
-  }
-  __device__ int CountNonZeros() {
-    int count = thrust::count(this->data_.begin(), this->data_.end(), 0);
-    return count - R * C;
+  __device__ void SwapRows(int i, int j) {
+    int l1 = i * C;
+    int l2 = j * C;
+
+    for (int k = 0; k < C; ++k) {
+      T temp = this->data_[l1 + k];
+      this->data_[l1 + k] = this->data_[l2 + k];
+      this->data_[l2 + k] = temp;
+    }
   }
 
   const thrust::device_vector<T>& data() const { return this->data_; }
 
  private:
   thrust::device_vector<T> data_;
+
 };
 
 // Single precision types.
