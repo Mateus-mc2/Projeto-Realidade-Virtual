@@ -33,23 +33,23 @@
     <ClCompile Include="src\material.cpp">
       <Filter>Source Files\cpu</Filter>
     </ClCompile>
-    <ClCompile Include="src\obj_reader.cpp">
-      <Filter>Source Files\cpu</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pnm_writer.cpp">
-      <Filter>Source Files\cpu</Filter>
-    </ClCompile>
     <ClCompile Include="src\pt_renderer.cpp">
       <Filter>Source Files\cpu</Filter>
     </ClCompile>
     <ClCompile Include="src\quadric.cpp">
       <Filter>Source Files\cpu</Filter>
     </ClCompile>
-    <ClCompile Include="src\sdl_reader.cpp">
-      <Filter>Source Files\cpu</Filter>
-    </ClCompile>
     <ClCompile Include="src\triangular_object.cpp">
       <Filter>Source Files\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="src\obj_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pnm_writer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sdl_reader.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -60,15 +60,6 @@
       <Filter>Header Files\cpu</Filter>
     </ClInclude>
     <ClInclude Include="include\material.h">
-      <Filter>Header Files\cpu</Filter>
-    </ClInclude>
-    <ClInclude Include="include\math_lib.h">
-      <Filter>Header Files\cpu</Filter>
-    </ClInclude>
-    <ClInclude Include="include\obj_reader.h">
-      <Filter>Header Files\cpu</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pnm_writer.h">
       <Filter>Header Files\cpu</Filter>
     </ClInclude>
     <ClInclude Include="include\pt_renderer.h">
@@ -86,9 +77,6 @@
     <ClInclude Include="include\sdl_object.h">
       <Filter>Header Files\cpu</Filter>
     </ClInclude>
-    <ClInclude Include="include\sdl_reader.h">
-      <Filter>Header Files\cpu</Filter>
-    </ClInclude>
     <ClInclude Include="include\triangular_object.h">
       <Filter>Header Files\cpu</Filter>
     </ClInclude>
@@ -101,11 +89,46 @@
     <ClInclude Include="include\gpu_matrix.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
-    <ClInclude Include="include\gpu_template_matrix.h">
+    <ClInclude Include="include\gpu_camera.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
-    <ClInclude Include="include\gpu_square_matrix.h">
+    <ClInclude Include="include\gpu_light.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
+    <ClInclude Include="include\gpu_material.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math_lib.h">
+      <Filter>Header Files\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="include\quadric_coefficients.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gpu_quadric.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gpu_ray.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gpu_renderable_object.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="include\obj_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pnm_writer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sdl_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gpu_triangular_object.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\gpu_quadric.cu">
+      <Filter>Source Files\gpu</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

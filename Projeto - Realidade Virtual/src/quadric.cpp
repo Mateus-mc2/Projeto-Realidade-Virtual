@@ -1,5 +1,7 @@
 #include "quadric.h"
 
+#include "quadric_coefficients.h"
+
 using Eigen::Vector3d;
 using Eigen::VectorXd;
 
@@ -15,34 +17,34 @@ Quadric::Quadric(const VectorXd &coefficients, const Material &material, bool is
 
 Quadric::Quadric(double a, double b, double c, double f, double g, double h, double p, double q,
                  double r, double d, const Material &material, bool is_emissive) 
-                 :  RenderableObject(material, is_emissive) {
-  this->coefficients_.resize(10);
-  this->coefficients_(this->kCoeffA) = a;
-  this->coefficients_(this->kCoeffB) = b;
-  this->coefficients_(this->kCoeffC) = c;
-  this->coefficients_(this->kCoeffF) = f;
-  this->coefficients_(this->kCoeffG) = g;
-  this->coefficients_(this->kCoeffH) = h;
-  this->coefficients_(this->kCoeffP) = p;
-  this->coefficients_(this->kCoeffQ) = q;
-  this->coefficients_(this->kCoeffR) = r;
-  this->coefficients_(this->kCoeffD) = d;
+                 :  RenderableObject(material, is_emissive),
+                    coefficients_(10) {
+  this->coefficients_(project::kCoeffA) = a;
+  this->coefficients_(project::kCoeffB) = b;
+  this->coefficients_(project::kCoeffC) = c;
+  this->coefficients_(project::kCoeffF) = f;
+  this->coefficients_(project::kCoeffG) = g;
+  this->coefficients_(project::kCoeffH) = h;
+  this->coefficients_(project::kCoeffP) = p;
+  this->coefficients_(project::kCoeffQ) = q;
+  this->coefficients_(project::kCoeffR) = r;
+  this->coefficients_(project::kCoeffD) = d;
 }
 
 double Quadric::GetIntersectionParameter(const Ray &ray, Vector3d *normal) const {
   // Coefficients.
-  double a = this->coefficients_(this->kCoeffA);
-  double b = this->coefficients_(this->kCoeffB);
-  double c = this->coefficients_(this->kCoeffC);
+  double a = this->coefficients_(project::kCoeffA);
+  double b = this->coefficients_(project::kCoeffB);
+  double c = this->coefficients_(project::kCoeffC);
 
-  double f = this->coefficients_(this->kCoeffF);
-  double g = this->coefficients_(this->kCoeffG);
-  double h = this->coefficients_(this->kCoeffH);
+  double f = this->coefficients_(project::kCoeffF);
+  double g = this->coefficients_(project::kCoeffG);
+  double h = this->coefficients_(project::kCoeffH);
 
-  double p = this->coefficients_(this->kCoeffP);
-  double q = this->coefficients_(this->kCoeffQ);
-  double r = this->coefficients_(this->kCoeffR);
-  double d = this->coefficients_(this->kCoeffD);
+  double p = this->coefficients_(project::kCoeffP);
+  double q = this->coefficients_(project::kCoeffQ);
+  double r = this->coefficients_(project::kCoeffR);
+  double d = this->coefficients_(project::kCoeffD);
 
   // Ray parameters (origin and direction).
   double x_0 = ray.origin(0);

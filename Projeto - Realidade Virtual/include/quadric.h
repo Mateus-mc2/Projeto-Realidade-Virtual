@@ -18,12 +18,6 @@ class InvalidCoefficientsVectorException : public UtilException {
 
 class Quadric : public RenderableObject {
  public:
-  // See http://mathworld.wolfram.com/QuadraticSurface.html to understand this notation.
-  enum Index {kCoeffA, kCoeffB, kCoeffC,
-              kCoeffF, kCoeffG, kCoeffH,
-              kCoeffP, kCoeffQ, kCoeffR,
-              kCoeffD};
-
   Quadric(const Eigen::VectorXd &coefficients, const Material &material, bool is_emissive);
   Quadric(double a, double b, double c, double f, double g, double h, double p, double q,
           double r, double d, const Material &material, bool is_emissive);

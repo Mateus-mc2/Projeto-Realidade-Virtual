@@ -22,10 +22,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\camera.h" />
+    <ClInclude Include="include\gpu_light.h" />
+    <ClInclude Include="include\gpu_camera.h" />
+    <ClInclude Include="include\gpu_material.h" />
     <ClInclude Include="include\gpu_matrix.h" />
     <ClInclude Include="include\gpu_path_tracer.h" />
-    <ClInclude Include="include\gpu_square_matrix.h" />
-    <ClInclude Include="include\gpu_template_matrix.h" />
+    <ClInclude Include="include\gpu_quadric.h" />
+    <ClInclude Include="include\gpu_ray.h" />
+    <ClInclude Include="include\gpu_renderable_object.h" />
+    <ClInclude Include="include\gpu_triangular_object.h" />
     <ClInclude Include="include\light.h" />
     <ClInclude Include="include\material.h" />
     <ClInclude Include="include\math_lib.h" />
@@ -33,12 +38,16 @@
     <ClInclude Include="include\pnm_writer.h" />
     <ClInclude Include="include\pt_renderer.h" />
     <ClInclude Include="include\quadric.h" />
+    <ClInclude Include="include\quadric_coefficients.h" />
     <ClInclude Include="include\ray.h" />
     <ClInclude Include="include\renderable_object.h" />
     <ClInclude Include="include\sdl_object.h" />
     <ClInclude Include="include\sdl_reader.h" />
     <ClInclude Include="include\triangular_object.h" />
     <ClInclude Include="include\util_exception.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\gpu_quadric.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A9306560-758D-43E0-A053-91661F7824DC}</ProjectGuid>
