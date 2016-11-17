@@ -2,6 +2,7 @@
 
 #include <thrust/complex.h>
 
+#include "math_lib.h"
 #include "quadric_coefficients.h"
 
 namespace gpu {
@@ -47,20 +48,16 @@ __device__ float GPUQuadric::GetIntersectionParameter(const GPURay &ray, float3 
 
   float t;  // Parameter to return.
 
-  // Equation coefficients (degree 2: kA*t^2 + kB*t + kC = 0).
+  // Equation coefficients (degree 2: A*t^2 + B*t + C = 0).
   const float A = a*dx*dx + b*dy*dy + c*dz*dz + 2 * (f*dy*dz + g*dx*dz + h*dx*dy);
   const float B = 2 * (a*x_0*dx + b*y_0*dy + c*z_0*dz + f*(dz*y_0 + dy*z_0) + g*(dz*x_0 + dx*z_0)
                   + h*(dy*x_0 + dx*y_0) + p*dx + q*dy + r*dz);
   const float C = a*x_0*x_0 + b*y_0*y_0 + c*z_0*z_0 + d + 2 * (f*y_0*z_0 + g*x_0*z_0 + h*x_0*y_0
                   + p*x_0 + q*y_0 + r*z_0);
 
-  auto is_almost_equal = [](float a, float b, float eps) -> bool { 
-    return thrust::abs(thrust::complex<float>(a - b)) <= thrust::abs(thrust::complex<float>(a)) * eps;
-  };
-
-  if (is_almost_equal(A, 0.0, this->kEps)) {
+  if (math::IsAlmostEqual(A, 0.0f, this->kEps)) {
     // The equation has degree 1.
-    if (is_almost_equal(B, 0.0, this->kEps)) {
+    if (math::IsAlmostEqual(B, 0.0f, this->kEps)) {
       // The equation has degree 0, thus it's degenerate (it has infinite - or even zero - roots).
       return -1.0;
     }
@@ -72,14 +69,14 @@ __device__ float GPUQuadric::GetIntersectionParameter(const GPURay &ray, float3 
     if (discriminant < 0.0) {
       // No real roots.
       return -1.0;
-    } else if (is_almost_equal(discriminant, 0.0, this->kEps)) {
+    } else if (math::IsAlmostEqual(discriminant, 0.0f, this->kEps)) {
       t = (-B) / (2 * A);
     } else {
       float sqrt_delta = thrust::sqrt(thrust::complex<float>(discriminant)).real();
       // Gets the nearest point in front of the ray center.
       t = (-B - sqrt_delta) / (2 * A);
 
-      if (t < 0.0 || is_almost_equal(t, 0.0, this->kEps)) {
+      if (t < 0.0 || math::IsAlmostEqual(t, 0.0f, this->kEps)) {
         // It is behind/coincident with the ray center.
         t = (-B + sqrt_delta) / (2 * A);
       }
@@ -95,15 +92,10 @@ __device__ float GPUQuadric::GetIntersectionParameter(const GPURay &ray, float3 
   normal->y = 2 * (b*y + f*z + h*x + q);
   normal->z = 2 * (c*z + f*y + g*x + r);
 
-  if (!(is_almost_equal(normal->x, 0.0, this->kEps) &&
-        is_almost_equal(normal->y, 0.0, this->kEps) &&
-        is_almost_equal(normal->z, 0.0, this->kEps))) {
-    float squared_norm = normal->x * normal->x + normal->y * normal->y + normal->z * normal->z;
-    float norm = thrust::sqrt(thrust::complex<float>(squared_norm)).real();
-
-    normal->x /= norm;
-    normal->y /= norm;
-    normal->z /= norm;
+  if (!(math::IsAlmostEqual(normal->x, 0.0f, this->kEps) &&
+        math::IsAlmostEqual(normal->y, 0.0f, this->kEps) &&
+        math::IsAlmostEqual(normal->z, 0.0f, this->kEps))) {
+    math::Normalize(normal);
   }
 
   if (t < this->kEps) {  // If it's negative or almost zero.

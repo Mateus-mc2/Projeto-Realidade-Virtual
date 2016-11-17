@@ -98,9 +98,6 @@
     <ClInclude Include="include\gpu_material.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
-    <ClInclude Include="include\math_lib.h">
-      <Filter>Header Files\cpu</Filter>
-    </ClInclude>
     <ClInclude Include="include\quadric_coefficients.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -125,9 +122,21 @@
     <ClInclude Include="include\gpu_triangular_object.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
+    <ClInclude Include="include\gpu_linear_algebra.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math_lib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\gpu_quadric.cu">
+      <Filter>Source Files\gpu</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\gpu_triangular_object.cu">
+      <Filter>Source Files\gpu</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\gpu_matrix.cu">
       <Filter>Source Files\gpu</Filter>
     </CudaCompile>
   </ItemGroup>

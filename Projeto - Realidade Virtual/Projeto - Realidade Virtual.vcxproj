@@ -24,6 +24,7 @@
     <ClInclude Include="include\camera.h" />
     <ClInclude Include="include\gpu_light.h" />
     <ClInclude Include="include\gpu_camera.h" />
+    <ClInclude Include="include\gpu_linear_algebra.h" />
     <ClInclude Include="include\gpu_material.h" />
     <ClInclude Include="include\gpu_matrix.h" />
     <ClInclude Include="include\gpu_path_tracer.h" />
@@ -47,7 +48,9 @@
     <ClInclude Include="include\util_exception.h" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="src\gpu_matrix.cu" />
     <CudaCompile Include="src\gpu_quadric.cu" />
+    <CudaCompile Include="src\gpu_triangular_object.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A9306560-758D-43E0-A053-91661F7824DC}</ProjectGuid>
