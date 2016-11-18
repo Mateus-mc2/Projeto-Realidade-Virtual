@@ -16,6 +16,8 @@ class GPUMatrix {
   __device__ ~GPUMatrix() { delete[] this->data_; }
 
   __device__ static GPUMatrix Identity(int rows, int cols);
+  __device__ static GPUMatrix PermutationMatrix(int rows, int cols, const int *pivots);
+  __device__ static GPUMatrix Zeros(int rows, int cols);
 
   __device__ float& operator()(int row, int col);
   __device__ float operator()(int row, int col) const;
@@ -26,8 +28,11 @@ class GPUMatrix {
   __device__ GPUMatrix& operator*=(const GPUMatrix &rhs);
   __device__ GPUMatrix& operator^=(const GPUMatrix &rhs);
 
-  __device__ bool IsEmpty() const { return this->rows_ | this->cols_ == 0; }
   __device__ int CountNonZeros() const;
+  __device__ bool IsEmpty() const { return this->rows_ | this->cols_ == 0; }
+  __device__ float* RowPtr(int row) { return &this->data_[row * this->cols_]; }
+  __device__ const float* RowPtr(int row) const { return &this->data_[row * this->cols_]; }
+  __device__ void SwapRows(int i, int j);
 
   // Accessors.
   __device__ const float *data() const { return this->data_; }

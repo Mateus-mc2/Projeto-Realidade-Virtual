@@ -5,6 +5,7 @@
 #include <thrust/device_vector.h>
 
 #include "gpu_renderable_object.h"
+#include "gpu_stack.h"
 
 namespace gpu {
 
@@ -21,7 +22,7 @@ struct GPURay {
         direction(direction),
         depth(depth) {}
   __device__ GPURay(const float3 &origin, const float3 &direction,
-                    const thrust::device_vector<GPURenderableObject*> &objs_stack, int depth)
+                    const GPUStack<GPURenderableObject*> &objs_stack, int depth)
        : origin(origin),
          direction(direction),
          objs_stack(objs_stack),
@@ -30,7 +31,7 @@ struct GPURay {
 
   float3 origin;
   float3 direction;
-  thrust::device_vector<GPURenderableObject*> objs_stack;
+  GPUStack<GPURenderableObject*> objs_stack;
   int depth;
 };
 }

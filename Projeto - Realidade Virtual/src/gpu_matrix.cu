@@ -37,14 +37,51 @@ __device__ int GPUMatrix::CountNonZeros() const {
 __device__ GPUMatrix GPUMatrix::Identity(int rows, int cols) {
   GPUMatrix I(rows, cols);
 
-  for (int i = 0; i < rows; ++i) {
+  for (int i= 0; i < rows; ++i) {
+    float *ptr = I.RowPtr(i);
     for (int j = 0; j < cols; ++j) {
-      if (i == j) I(i, j) = 1;
-      else I(i, j) = 0;
+      if (i == j) ptr[j] = 1;
+      else ptr[j] = 0;
     }
   }
 
   return I;
+}
+
+__device__ GPUMatrix GPUMatrix::PermutationMatrix(int rows, int cols, const int *pivots) {
+  GPUMatrix P(rows, cols);
+
+  for (int i = 0; i < rows; ++i) {
+    float *ptr = P.RowPtr(i);
+    for (int j = 0; j < cols; ++j) {
+      if (pivots[i] == j) ptr[j] = 1;
+      else ptr[j] = 0;
+    }
+  }
+
+  return P;
+}
+
+__device__ void GPUMatrix::SwapRows(int i, int j) {
+  int line1 = i*this->cols_;
+  int line2 = j*this->cols_;
+
+  for (int k = 0; k < this->cols_; ++k) {
+    float aux = this->data_[line1 + k];
+    this->data_[line1 + k] = this->data_[line2 + k];
+    this->data_[line2 + k] = aux;
+  }
+}
+
+__device__ GPUMatrix GPUMatrix::Zeros(int rows, int cols) {
+  GPUMatrix zeros(rows, cols);
+
+  for (int i= 0; i < rows; ++i) {
+    float *ptr = zeros.RowPtr(i);
+    for (int j = 0; j < cols; ++j) ptr[j] = 0;
+  }
+
+  return zeros;
 }
 
 __device__ float& GPUMatrix::operator()(int row, int col) {

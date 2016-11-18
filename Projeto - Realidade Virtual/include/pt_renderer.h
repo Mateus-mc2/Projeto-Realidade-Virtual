@@ -40,7 +40,6 @@ class PTRenderer {
   static const double kEps;
 
   Eigen::Vector3d TracePath(const util::Ray &ray);
-  //cv::Mat GetImageGeometricInformation();
   void GetNearestObjectAndIntersection(const util::Ray &ray,
                                        util::RenderableObject **object,
                                        double *parameter,

@@ -34,22 +34,23 @@ __device__ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material,
     this->planes_coeffs_[i] = coeffs;
 
     // Get system's LUP decomposition matrices.
-    GPUMatrix A(3, 3);
+    GPUMatrix L = GPUMatrix::Identity(3, 3);
+    GPUMatrix U(3, 3);
 
-    A(0, 0) = a.x;
-    A(1, 0) = a.y;
-    A(2, 0) = a.z;
+    U(0, 0) = a.x;
+    U(1, 0) = a.y;
+    U(2, 0) = a.z;
 
-    A(0, 1) = b.x;
-    A(1, 1) = b.y;
-    A(2, 1) = b.z;
+    U(0, 1) = b.x;
+    U(1, 1) = b.y;
+    U(2, 1) = b.z;
 
-    A(0, 2) = c.x;
-    A(1, 2) = c.y;
-    A(2, 2) = c.z;
+    U(0, 2) = c.x;
+    U(1, 2) = c.y;
+    U(2, 2) = c.z;
 
-    GPUMatrix L, U, P;
-    LUPDecomposition(A, &L, &U, &P);
+    GPUMatrix P;
+    LUPDecomposition(&L, &U, &P);
 
     this->linear_systems_[3 * i] = L;
     this->linear_systems_[3 * i + 1] = U;

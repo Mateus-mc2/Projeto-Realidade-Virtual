@@ -22,7 +22,7 @@ class GPUTriangularObject : public GPURenderableObject {
   __device__ float GetIntersectionParameter(const GPURay &ray, float3 *normal) const;
 
  private:
-  float4* planes_coeffs_;        // Plane coefficients where each face belongs.
+  float4* planes_coeffs_;      // Plane coefficients where each face belongs.
   GPUMatrix* linear_systems_;  // Upper triangular system matrices.
   int num_faces_;
 };

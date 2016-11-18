@@ -128,6 +128,9 @@
     <ClInclude Include="include\math_lib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\gpu_stack.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\gpu_quadric.cu">
@@ -138,6 +141,12 @@
     </CudaCompile>
     <CudaCompile Include="src\gpu_matrix.cu">
       <Filter>Source Files\gpu</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\gpu_linear_algebra.cu">
+      <Filter>Source Files\gpu</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\math_lib.cu">
+      <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>
