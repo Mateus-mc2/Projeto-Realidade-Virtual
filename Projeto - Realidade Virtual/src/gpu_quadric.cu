@@ -7,8 +7,9 @@
 
 namespace gpu {
 
-__device__ GPUQuadric::GPUQuadric(float a, float b, float c, float f, float g, float h, float p, float q,
-                                  float r, float d, const GPUMaterial &material)
+__host__ __device__ GPUQuadric::GPUQuadric(float a, float b, float c, float f, float g, float h,
+                                           float p, float q, float r, float d,
+                                           const GPUMaterial &material)
     : GPURenderableObject(material) {
   this->coefficients_[project::kCoeffB] = b;
   this->coefficients_[project::kCoeffA] = a;
@@ -22,7 +23,7 @@ __device__ GPUQuadric::GPUQuadric(float a, float b, float c, float f, float g, f
   this->coefficients_[project::kCoeffD] = d;
 }
 
-__device__ float GPUQuadric::GetIntersectionParameter(const GPURay &ray, float3 *normal) const {
+__host__ __device__ float GPUQuadric::GetIntersectionParameter(const GPURay &ray, float3 *normal) const {
   // Coefficients.
   float a = this->coefficients_[project::kCoeffA];
   float b = this->coefficients_[project::kCoeffB];
@@ -84,9 +85,9 @@ __device__ float GPUQuadric::GetIntersectionParameter(const GPURay &ray, float3 
   }
 
   // Get normal from this point - must get the gradient from the implicit equation.
-  double x = x_0 + t*dx;
-  double y = y_0 + t*dy;
-  double z = z_0 + t*dz;
+  float x = x_0 + t*dx;
+  float y = y_0 + t*dy;
+  float z = z_0 + t*dz;
 
   normal->x = 2 * (a*x + g*z + h*y + p);
   normal->y = 2 * (b*y + f*z + h*x + q);

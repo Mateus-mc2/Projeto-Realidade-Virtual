@@ -11,14 +11,14 @@ namespace gpu {
 
 class GPUQuadric : public GPURenderableObject {
  public:
-  __device__ GPUQuadric(float a, float b, float c, float f, float g, float h, float p, float q,
-                        float r, float d, const GPUMaterial &material);
-  __device__ ~GPUQuadric() {}
+  __host__ __device__ GPUQuadric(float a, float b, float c, float f, float g, float h, float p,
+                                 float q, float r, float d, const GPUMaterial &material);
+  __host__ __device__ ~GPUQuadric() {}
 
-  __device__ float GetIntersectionParameter(const GPURay &ray, float3 *normal) const;
+  __host__ __device__ float GetIntersectionParameter(const GPURay &ray, float3 *normal) const;
 
   // Accessors.
-  __device__ const float* coefficients() const { return this->coefficients_; }
+  __host__ __device__ const float* coefficients() const { return this->coefficients_; }
 
  private:
   float coefficients_[10];

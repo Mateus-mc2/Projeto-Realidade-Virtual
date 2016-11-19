@@ -9,6 +9,7 @@ namespace util {
 class RenderableObject;
 
 struct Ray {
+ public:
   Ray(const Eigen::Vector3d &origin, const Eigen::Vector3d &direction, int depth)
       : origin(origin),
         direction(direction),

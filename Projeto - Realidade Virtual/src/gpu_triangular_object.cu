@@ -7,10 +7,10 @@
 
 namespace gpu {
 
-__device__ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material,
-                                                    const float3 *vertices,
-                                                    const int3 *faces,
-                                                    int num_faces)
+__host__ __device__ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material,
+                                                             const float3 *vertices,
+                                                             const int3 *faces,
+                                                             int num_faces)
     : GPURenderableObject(material),
       planes_coeffs_(new float4[num_faces]),
       linear_systems_(new GPUMatrix[3 * num_faces]),
@@ -58,7 +58,8 @@ __device__ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material,
   }
 }
 
-__device__ float GPUTriangularObject::GetIntersectionParameter(const GPURay &ray, float3 *normal) const {
+__host__ __device__ float GPUTriangularObject::GetIntersectionParameter(const GPURay &ray,
+                                                                        float3 *normal) const {
   float min_t = -1.0f;
   auto is_inner_point = [this](float a, float b, float c) -> bool { 
     return math::IsAlmostEqual(a + b + c, 1.0f, this->kEps) && a >= 0 && b >= 0 && c >= 0 && a <= 1

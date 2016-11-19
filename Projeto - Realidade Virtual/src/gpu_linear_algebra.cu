@@ -4,7 +4,7 @@
 // later for square matrices, but they'll be enough by now.
 namespace gpu {
 
-__device__ void LUPDecomposition(GPUMatrix *L, GPUMatrix *U, GPUMatrix *P) {
+__host__ __device__ void LUPDecomposition(GPUMatrix *L, GPUMatrix *U, GPUMatrix *P) {
   int last_pivot_col = 0;
   int min = (U->rows() < U->cols()) ? U->rows() : U->cols();
   int *pivots = new int[min];
@@ -45,7 +45,8 @@ __device__ void LUPDecomposition(GPUMatrix *L, GPUMatrix *U, GPUMatrix *P) {
   delete[] pivots;
 }
 
-__device__ void ApplyForwardSubstitution(const GPUMatrix &L, const GPUMatrix &b, GPUMatrix *x) {
+__host__ __device__ void ApplyForwardSubstitution(const GPUMatrix &L, const GPUMatrix &b,
+                                                  GPUMatrix *x) {
   for (int i = 0; i < L.rows(); --i) {
     float diff = 0.0f;
     const float *ptr = L.RowPtr(i);
@@ -58,7 +59,8 @@ __device__ void ApplyForwardSubstitution(const GPUMatrix &L, const GPUMatrix &b,
   }
 }
 
-__device__ void ApplyBackSubstitution(const GPUMatrix &U, const GPUMatrix &b, GPUMatrix *x) {
+__host__ __device__ void ApplyBackSubstitution(const GPUMatrix &U, const GPUMatrix &b,
+                                               GPUMatrix *x) {
   for (int i = U.rows() - 1; i >= 0; --i) {
     float diff = 0.0f;
     const float *ptr = U.RowPtr(i);

@@ -6,11 +6,11 @@ util::SDLObject SDLReader::ReadSDL(const std::string &file_directory,
                                    const std::string &file_name) {
   // Preparar todas as variaveis que receberao os dados para a criacao do sdl_object
   std::string                         output_name;
-  Eigen::Vector3d                     eye;
-  Eigen::Vector2d                     bottom;
-  Eigen::Vector2d                     top;
-  double                              width;
-  double                              height;
+  Eigen::Vector3f                     eye;
+  Eigen::Vector2f                     bottom;
+  Eigen::Vector2f                     top;
+  int                                 width;
+  int                                 height;
   Eigen::Vector3d                     background_color;
   double                              ambient_light_intensity;
   std::vector<util::PointLight>       point_lights;
@@ -38,7 +38,7 @@ util::SDLObject SDLReader::ReadSDL(const std::string &file_directory,
         sdl_file >> output_name;
 
       } else if (word == "eye") {            // Centro da camera
-        double x, y, z;
+        float x, y, z;
 
         sdl_file >> x;
         sdl_file >> y;
@@ -48,7 +48,7 @@ util::SDLObject SDLReader::ReadSDL(const std::string &file_directory,
         eye[1] = y;
         eye[2] = z;
       } else if (word == "ortho") {          // Viewport da camera
-        double bx, by, tx, ty;
+        float bx, by, tx, ty;
 
         sdl_file >> bx;
         sdl_file >> by;

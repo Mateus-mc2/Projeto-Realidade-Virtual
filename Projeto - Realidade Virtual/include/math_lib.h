@@ -9,9 +9,9 @@
 
 namespace math {
 
-__host__ bool IsAlmostEqual(double x, double y, double eps);
-__device__ bool IsAlmostEqual(float x, float y, float eps);
-__device__ void Normalize(float3 *triple);
+__host__ __device__ bool IsAlmostEqual(double x, double y, double eps);
+__host__ __device__ bool IsAlmostEqual(float x, float y, float eps);
+__host__ __device__ void Normalize(float3 *triple);
 
 }  // namespace math
 

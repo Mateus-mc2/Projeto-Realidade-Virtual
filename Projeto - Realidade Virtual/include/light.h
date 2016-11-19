@@ -6,6 +6,7 @@
 namespace util {
 
 struct PointLight {
+ public:
   PointLight(const Eigen::Vector3d &position, double red, double green, double blue,
              double intensity)
       : position(position),

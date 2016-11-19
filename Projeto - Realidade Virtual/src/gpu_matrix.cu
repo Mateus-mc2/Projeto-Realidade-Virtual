@@ -2,7 +2,7 @@
 
 namespace gpu {
 
-__device__ GPUMatrix::GPUMatrix(const GPUMatrix &matrix)
+__host__ __device__ GPUMatrix::GPUMatrix(const GPUMatrix &matrix)
     : data_(new float[matrix.rows() * matrix.cols()]),
       rows_(matrix.rows()),
       cols_(matrix.cols()) {
@@ -11,7 +11,7 @@ __device__ GPUMatrix::GPUMatrix(const GPUMatrix &matrix)
   }
 }
 
-__device__ void GPUMatrix::CopyFrom(const GPUMatrix &matrix) {
+__host__ __device__ void GPUMatrix::CopyFrom(const GPUMatrix &matrix) {
   if (this->rows_ != matrix.rows() || this->cols_ != matrix.cols()) {
     delete[] this->data_;
     this->rows_ = matrix.rows();
@@ -24,8 +24,8 @@ __device__ void GPUMatrix::CopyFrom(const GPUMatrix &matrix) {
   }
 }
 
-__device__ int GPUMatrix::CountNonZeros() const {
-  int count;
+__host__ __device__ int GPUMatrix::CountNonZeros() const {
+  int count = 0;
 
   for (int i = 0; i < this->rows_ * this->cols_; ++i) {
     if (this->data_[i] != 0) ++count;
@@ -34,7 +34,7 @@ __device__ int GPUMatrix::CountNonZeros() const {
   return count;
 }
 
-__device__ GPUMatrix GPUMatrix::Identity(int rows, int cols) {
+__host__ __device__ GPUMatrix GPUMatrix::Identity(int rows, int cols) {
   GPUMatrix I(rows, cols);
 
   for (int i= 0; i < rows; ++i) {
@@ -48,7 +48,7 @@ __device__ GPUMatrix GPUMatrix::Identity(int rows, int cols) {
   return I;
 }
 
-__device__ GPUMatrix GPUMatrix::PermutationMatrix(int rows, int cols, const int *pivots) {
+__host__ __device__ GPUMatrix GPUMatrix::PermutationMatrix(int rows, int cols, const int *pivots) {
   GPUMatrix P(rows, cols);
 
   for (int i = 0; i < rows; ++i) {
@@ -62,7 +62,7 @@ __device__ GPUMatrix GPUMatrix::PermutationMatrix(int rows, int cols, const int 
   return P;
 }
 
-__device__ void GPUMatrix::SwapRows(int i, int j) {
+__host__ __device__ void GPUMatrix::SwapRows(int i, int j) {
   int line1 = i*this->cols_;
   int line2 = j*this->cols_;
 
@@ -73,7 +73,7 @@ __device__ void GPUMatrix::SwapRows(int i, int j) {
   }
 }
 
-__device__ GPUMatrix GPUMatrix::Zeros(int rows, int cols) {
+__host__ __device__ GPUMatrix GPUMatrix::Zeros(int rows, int cols) {
   GPUMatrix zeros(rows, cols);
 
   for (int i= 0; i < rows; ++i) {
@@ -84,15 +84,15 @@ __device__ GPUMatrix GPUMatrix::Zeros(int rows, int cols) {
   return zeros;
 }
 
-__device__ float& GPUMatrix::operator()(int row, int col) {
+__host__ __device__ float& GPUMatrix::operator()(int row, int col) {
   return this->data_[row * this->cols_ + col];
 }
 
-__device__ float GPUMatrix::operator()(int row, int col) const {
+__host__ __device__ float GPUMatrix::operator()(int row, int col) const {
   return this->data_[row * this->cols_ + col];
 }
 
-__device__ GPUMatrix& GPUMatrix::operator=(const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix& GPUMatrix::operator=(const GPUMatrix &rhs) {
   if (this != &rhs) {
     this->CopyFrom(rhs);
   }
@@ -100,7 +100,7 @@ __device__ GPUMatrix& GPUMatrix::operator=(const GPUMatrix &rhs) {
   return *this;
 }
 
-__device__ GPUMatrix& GPUMatrix::operator+=(const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix& GPUMatrix::operator+=(const GPUMatrix &rhs) {
   if (this->rows_ == rhs.rows() && this->cols_ == rhs.cols()) {
     for (int i = 0; i < this->rows_ * this->cols_; ++i) {
       this->data_[i] += rhs.data()[i];
@@ -110,7 +110,7 @@ __device__ GPUMatrix& GPUMatrix::operator+=(const GPUMatrix &rhs) {
   return *this;
 }
 
-__device__ GPUMatrix& GPUMatrix::operator-=(const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix& GPUMatrix::operator-=(const GPUMatrix &rhs) {
   if (this->rows_ == rhs.rows() && this->cols_ == rhs.cols()) {
     for (int i = 0; i < this->rows_ * this->cols_; ++i) {
       this->data_[i] -= rhs.data()[i];
@@ -120,7 +120,7 @@ __device__ GPUMatrix& GPUMatrix::operator-=(const GPUMatrix &rhs) {
   return *this;
 }
 
-__device__ GPUMatrix& GPUMatrix::operator*=(const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix& GPUMatrix::operator*=(const GPUMatrix &rhs) {
   if (this->cols_ == rhs.rows()) {
     GPUMatrix result(this->rows_, rhs.cols());
 
@@ -140,7 +140,7 @@ __device__ GPUMatrix& GPUMatrix::operator*=(const GPUMatrix &rhs) {
   return *this;
 }
 
-__device__ GPUMatrix& GPUMatrix::operator^=(const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix& GPUMatrix::operator^=(const GPUMatrix &rhs) {
   if (this->rows_ == rhs.rows() && this->cols_ == rhs.cols()) {
     for (int i = 0; i < this->rows_ * this->cols_; ++i) {
       unsigned char *data_temp = reinterpret_cast<unsigned char*>(&this->data_[i]);
@@ -155,7 +155,7 @@ __device__ GPUMatrix& GPUMatrix::operator^=(const GPUMatrix &rhs) {
   return *this;
 }
 
-__device__ GPUMatrix operator-(const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix operator-(const GPUMatrix &rhs) {
   GPUMatrix result(rhs);
   for (int i = 0; i < rhs.rows(); ++i) {
     for (int j = 0; j < rhs.cols(); ++j) {
@@ -166,29 +166,29 @@ __device__ GPUMatrix operator-(const GPUMatrix &rhs) {
   return result;
 }
 
-__device__ bool operator==(const GPUMatrix &lhs, const GPUMatrix &rhs) {
+__host__ __device__ bool operator==(const GPUMatrix &lhs, const GPUMatrix &rhs) {
   return (lhs ^ rhs).CountNonZeros() == 0;
 }
 
-__device__ bool operator!=(const GPUMatrix &lhs, const GPUMatrix &rhs) {
+__host__ __device__ bool operator!=(const GPUMatrix &lhs, const GPUMatrix &rhs) {
   return (lhs ^ rhs).CountNonZeros() != 0;
 }
 
-__device__ GPUMatrix operator+(const GPUMatrix &lhs, const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix operator+(const GPUMatrix &lhs, const GPUMatrix &rhs) {
   GPUMatrix sum(lhs);
   sum += rhs;
 
   return sum;
 }
 
-__device__ GPUMatrix operator-(const GPUMatrix &lhs, const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix operator-(const GPUMatrix &lhs, const GPUMatrix &rhs) {
   GPUMatrix diff(lhs);
   diff -= rhs;
 
   return diff;
 }
 
-__device__ GPUMatrix operator*(const GPUMatrix &lhs, const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix operator*(const GPUMatrix &lhs, const GPUMatrix &rhs) {
   GPUMatrix product(lhs.rows(), rhs.cols());
 
   for (int i = 0; i < product.rows(); ++i) {
@@ -204,7 +204,7 @@ __device__ GPUMatrix operator*(const GPUMatrix &lhs, const GPUMatrix &rhs) {
   return product;
 }
 
-__device__ GPUMatrix operator^(const GPUMatrix &lhs, const GPUMatrix &rhs) {
+__host__ __device__ GPUMatrix operator^(const GPUMatrix &lhs, const GPUMatrix &rhs) {
   GPUMatrix result(lhs);
   result ^= rhs;
 

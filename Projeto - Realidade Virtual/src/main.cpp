@@ -56,6 +56,5 @@ int main(int argc, char* argv[]) {
     pnm_mgr.WritePNMFile(rendered_img);
   }
 
-  system("pause");
   return 0;
 }

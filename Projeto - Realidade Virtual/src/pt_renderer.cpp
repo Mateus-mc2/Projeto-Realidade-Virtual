@@ -289,49 +289,6 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
   }
 }
 
-//cv::Mat PTRenderer::GetImageGeometricInformation() {
-//  int cols = static_cast<int>(this->scene_.camera_.width_);
-//  int rows = static_cast<int>(this->scene_.camera_.height_);
-//
-//  cv::Mat result(rows, cols, CV_32FC(6));
-//
-//  double pixel_w = (this->scene_.camera_.top_.x() - this->scene_.camera_.bottom_.x()) /
-//                    this->scene_.camera_.width_;
-//  double pixel_h = (this->scene_.camera_.top_.y() - this->scene_.camera_.bottom_.y()) /
-//                    this->scene_.camera_.height_;
-//
-//  for (int i = 0; i < rows; ++i) {
-//    GeometricInfo *row_ptr = result.ptr<GeometricInfo>(i);
-//
-//    for (int j = 0; j < cols; ++j) {
-//      double x_t = this->distribution_(this->anti_aliasing_generator_);
-//      double y_t = this->distribution_(this->anti_aliasing_generator_);
-//      Vector3d looking_at((this->scene_.camera_.bottom_.x() + x_t * pixel_w) + j * pixel_w,
-//                          (this->scene_.camera_.top_.y() - y_t * pixel_h) - i * pixel_h, 0.0);
-//      Vector3d direction = looking_at - this->scene_.camera_.eye_;
-//      direction = direction / direction.norm();
-//      util::Ray ray(this->scene_.camera_.eye_, direction, 1);
-//
-//      util::RenderableObject *object;
-//      double t;
-//      Vector3d normal;
-//
-//      this->GetNearestObjectAndIntersection(ray, &object, &t, &normal);
-//      Vector3d intersection_point = ray.origin + t * ray.direction;
-//
-//      row_ptr[j][0] = static_cast<float>(intersection_point.x());
-//      row_ptr[j][1] = static_cast<float>(intersection_point.y());
-//      row_ptr[j][2] = static_cast<float>(intersection_point.z());
-//
-//      row_ptr[j][3] = static_cast<float>(normal.x());
-//      row_ptr[j][4] = static_cast<float>(normal.y());
-//      row_ptr[j][5] = static_cast<float>(normal.z());
-//    }
-//  }
-//
-//  return result;
-//}
-
 void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
                                                  util::RenderableObject **object,
                                                  double *parameter,
@@ -406,17 +363,15 @@ double PTRenderer::ScaleLightIntensity(double light_intensity,
 }
 
 cv::Mat PTRenderer::RenderScene() {
-  int rows = static_cast<int>(this->scene_.camera_.height_);
-  int cols = static_cast<int>(this->scene_.camera_.width_);
+  int rows = this->scene_.camera_.height;
+  int cols = this->scene_.camera_.width;
 
   cv::Mat rendered_image(rows, cols, CV_64FC3);
   cv::Mat partial_result(rows, cols, CV_64FC3);
   cv::Mat geometric_information(rows, cols, CV_32FC(6));
 
-  double pixel_w = (this->scene_.camera_.top_(0) - this->scene_.camera_.bottom_(0)) /
-      this->scene_.camera_.width_;
-  double pixel_h = (this->scene_.camera_.top_(1) - this->scene_.camera_.bottom_(1)) / 
-      this->scene_.camera_.height_;
+  double pixel_w = (this->scene_.camera_.top(0) - this->scene_.camera_.bottom(0)) / cols;
+  double pixel_h = (this->scene_.camera_.top(1) - this->scene_.camera_.bottom(1)) / rows;
   int percent;
   int processed_rays = this->scene_.nmbr_paths_;
 
@@ -431,14 +386,14 @@ cv::Mat PTRenderer::RenderScene() {
         for (int k = 0; k < rendered_image.cols; ++k) {
           double x_t = this->distribution_(this->anti_aliasing_generator_);
           double y_t = this->distribution_(this->anti_aliasing_generator_);
-          Vector3d looking_at((this->scene_.camera_.bottom_(0) + x_t*pixel_w) + k*pixel_w,
-                              (this->scene_.camera_.top_(1)    - y_t*pixel_h) - j*pixel_h,
+          Vector3d looking_at((this->scene_.camera_.bottom(0) + x_t*pixel_w) + k*pixel_w,
+                              (this->scene_.camera_.top(1)    - y_t*pixel_h) - j*pixel_h,
                               0.0);
-          Vector3d direction = looking_at - this->scene_.camera_.eye_;
+          Vector3d direction = looking_at - this->scene_.camera_.eye.cast<double>();
           direction = direction / direction.norm();
 
           // Perform path tracing.
-          util::Ray ray(this->scene_.camera_.eye_, direction, 1);
+          util::Ray ray(this->scene_.camera_.eye.cast<double>(), direction, 1);
           Vector3d additional_color = this->TracePath(ray);
 
           img_row_ptr[k][0] += additional_color(2);
@@ -483,14 +438,14 @@ cv::Mat PTRenderer::RenderScene() {
         GeometricInfo *info_row_ptr = geometric_information.ptr<GeometricInfo>(j);
 
         for (int k = 0; k < rendered_image.cols; ++k) {
-          Vector3d looking_at((this->scene_.camera_.bottom_(0) + pixel_w / 2) + k*pixel_w,
-                              (this->scene_.camera_.top_(1)    - pixel_h / 2) - j*pixel_h,
+          Vector3d looking_at((this->scene_.camera_.bottom(0) + pixel_w / 2) + k*pixel_w,
+                              (this->scene_.camera_.top(1)    - pixel_h / 2) - j*pixel_h,
                               0.0);
-          Vector3d direction = looking_at - this->scene_.camera_.eye_;
+          Vector3d direction = looking_at - this->scene_.camera_.eye.cast<double>();
           direction = direction / direction.norm();
 
           // Perform path tracing.
-          util::Ray ray(this->scene_.camera_.eye_, direction, 1);
+          util::Ray ray(this->scene_.camera_.eye.cast<double>(), direction, 1);
           Vector3d additional_color = this->TracePath(ray);
 
           row_ptr[k][0] += additional_color(2);

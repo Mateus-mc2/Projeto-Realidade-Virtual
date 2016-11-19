@@ -12,6 +12,7 @@ class InvalidMaterialCoefficientsException : public UtilException {
 };
 
 struct Material {
+ public:
   Material () {}
   Material(double r, double g, double b, double refraction_coeff, double k_a, double k_d,
            double k_s, double k_t, double n, double lp, double light_sampling_step,

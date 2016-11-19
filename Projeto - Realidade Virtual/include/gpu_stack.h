@@ -7,14 +7,14 @@ template<typename T>
 class GPUStack {
  public:
   // Default initial capacity is 10.
-  __device__ GPUStack() : data_(new T[10]), top_(0), capacity_(10) {}
-  __device__ GPUStack(const GPUStack &stack)
+  __host__ __device__ GPUStack() : data_(new T[10]), top_(0), capacity_(10) {}
+  __host__ __device__ GPUStack(const GPUStack &stack)
       : data_(new T[stack.capacity()]),
         top_(stack.top()),
         capacity_(stack.capacity()) { this->CopyFrom(stack); }
-  __device__ ~GPUStack() { delete[] this->data_; }
+  __host__ __device__ ~GPUStack() { delete[] this->data_; }
 
-  __device__ GPUStack& operator=(const GPUStack &stack) {
+  __host__ __device__ GPUStack& operator=(const GPUStack &stack) {
     if (this != &stack) {
       this->top_ = stack.top();
 
@@ -31,13 +31,13 @@ class GPUStack {
     return *this;
   }
 
-  __device__ bool IsEmpty() const { return this->top_ == 0; }
-  __device__ T Peek() const {
+  __host__ __device__ bool IsEmpty() const { return this->top_ == 0; }
+  __host__ __device__ T Peek() const {
     if (this->top_ > 0) return this->data_[this->top_ - 1];
     else return T();
   }
 
-  __device__ T Pop() {
+  __host__ __device__ T Pop() {
     if (this->top_ > 0) {
       int prev_top = this->top_ - 1;
       --this->top_;
@@ -48,7 +48,7 @@ class GPUStack {
     }
   }
 
-  __device__ void Push(const T &val) {
+  __host__ __device__ void Push(const T &val) {
     if (this->top_ == this->capacity_) {
       this->ResizeStack();
     }
@@ -57,12 +57,12 @@ class GPUStack {
   }
 
   // Accessors.
-  __device__ const T* data() const { return this->data_; }
-  __device__ int top() const { return this->top_; }
-  __device__ int capacity() const { return this->capacity_; }
+  __host__ __device__ const T* data() const { return this->data_; }
+  __host__ __device__ int top() const { return this->top_; }
+  __host__ __device__ int capacity() const { return this->capacity_; }
 
  private:
-  __device__ void CopyFrom(const GPUStack &stack) {
+  __host__ __device__ void CopyFrom(const GPUStack &stack) {
     const T *data = stack.data();
 
     for (int i = 0; i < stack.top(); ++i) {
@@ -70,7 +70,7 @@ class GPUStack {
     }
   }
 
-  __device__ void ResizeStack() {
+  __host__ __device__ void ResizeStack() {
     this->capacity_ *= 2;
     T *new_stack = new T[this->capacity_];
 

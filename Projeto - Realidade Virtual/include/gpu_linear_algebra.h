@@ -5,9 +5,11 @@
 
 namespace gpu {
 
-__device__ void LUPDecomposition(GPUMatrix *L, GPUMatrix *U, GPUMatrix *P);
-__device__ void ApplyForwardSubstitution(const GPUMatrix &L, const GPUMatrix &b, GPUMatrix *x);
-__device__ void ApplyBackSubstitution(const GPUMatrix &U, const GPUMatrix &b, GPUMatrix *x);
+__host__ __device__ void LUPDecomposition(GPUMatrix *L, GPUMatrix *U, GPUMatrix *P);
+__host__ __device__ void ApplyForwardSubstitution(const GPUMatrix &L, const GPUMatrix &b,
+                                                  GPUMatrix *x);
+__host__ __device__ void ApplyBackSubstitution(const GPUMatrix &U, const GPUMatrix &b,
+                                               GPUMatrix *x);
 
 }  // namespace gpu
 
