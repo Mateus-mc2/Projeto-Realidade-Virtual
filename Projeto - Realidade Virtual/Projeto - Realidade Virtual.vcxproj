@@ -31,8 +31,10 @@
     <ClInclude Include="include\gpu_quadric.h" />
     <ClInclude Include="include\gpu_ray.h" />
     <ClInclude Include="include\gpu_renderable_object.h" />
+    <ClInclude Include="include\gpu_scene.h" />
     <ClInclude Include="include\gpu_stack.h" />
     <ClInclude Include="include\gpu_triangular_object.h" />
+    <ClInclude Include="include\gpu_vector.h" />
     <ClInclude Include="include\light.h" />
     <ClInclude Include="include\material.h" />
     <ClInclude Include="include\math_lib.h" />

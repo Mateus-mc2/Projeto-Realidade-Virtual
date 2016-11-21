@@ -131,6 +131,12 @@
     <ClInclude Include="include\gpu_stack.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
+    <ClInclude Include="include\gpu_scene.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gpu_vector.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\gpu_quadric.cu">

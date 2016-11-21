@@ -197,8 +197,9 @@ util::SDLObject SDLReader::ReadSDL(const std::string &file_directory,
 
     util::Camera new_camera(eye, bottom, top, width, height);
     return util::SDLObject(output_name, new_camera, background_color, ambient_light_intensity,
-                            point_lights, extense_lights, nmbr_paths, max_depth, tone_mapping,
-                            random_seed, quadrics_objects, triangular_objects, antialiasing, lightsamplingtype);
+                           point_lights, extense_lights, nmbr_paths, max_depth, tone_mapping,
+                           random_seed, quadrics_objects, triangular_objects, antialiasing,
+                           lightsamplingtype);
   } else {
     std::cout << "  Inexistent input file: " << word << std::endl;
     return util::SDLObject();

@@ -8,13 +8,13 @@ class GPUStack {
  public:
   // Default initial capacity is 10.
   __host__ __device__ GPUStack() : data_(new T[10]), top_(0), capacity_(10) {}
-  __host__ __device__ GPUStack(const GPUStack &stack)
+  __host__ __device__ GPUStack(const GPUStack<T> &stack)
       : data_(new T[stack.capacity()]),
         top_(stack.top()),
         capacity_(stack.capacity()) { this->CopyFrom(stack); }
   __host__ __device__ ~GPUStack() { delete[] this->data_; }
 
-  __host__ __device__ GPUStack& operator=(const GPUStack &stack) {
+  __host__ __device__ GPUStack<T>& operator=(const GPUStack<T> &stack) {
     if (this != &stack) {
       this->top_ = stack.top();
 
@@ -62,7 +62,7 @@ class GPUStack {
   __host__ __device__ int capacity() const { return this->capacity_; }
 
  private:
-  __host__ __device__ void CopyFrom(const GPUStack &stack) {
+  __host__ __device__ void CopyFrom(const GPUStack<T> &stack) {
     const T *data = stack.data();
 
     for (int i = 0; i < stack.top(); ++i) {

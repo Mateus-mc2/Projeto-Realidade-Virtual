@@ -26,7 +26,7 @@ struct SDLObject {
             const Eigen::Vector3d &background_color,
             double ambient_light_intensity,
             const std::vector<PointLight> &point_lights,
-            const std::vector<TriangularObject> extense_lights,
+            const std::vector<TriangularObject> &extense_lights,
             int nmbr_paths,
             int max_depth,
             double tone_mapping,

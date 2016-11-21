@@ -27,11 +27,11 @@ class PTRenderer {
  public:
   explicit PTRenderer(const util::SDLObject &scene)
       : scene_(scene),
-        generator_(std::default_random_engine(scene.random_seed_)),
-        ray_generator_(std::default_random_engine(scene.random_seed_)),
-        anti_aliasing_generator_(std::default_random_engine(scene.random_seed_)),
-        light_generator_(std::default_random_engine(scene.random_seed_)),
-        distribution_(std::uniform_real_distribution<double>(0, 1)) {}
+        generator_(scene.random_seed_),
+        ray_generator_(scene.random_seed_),
+        anti_aliasing_generator_(scene.random_seed_),
+        light_generator_(scene.random_seed_),
+        distribution_(0, 1) {}
   ~PTRenderer () {};
 
   cv::Mat RenderScene();
