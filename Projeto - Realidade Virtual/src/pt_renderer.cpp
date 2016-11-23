@@ -405,7 +405,7 @@ double PTRenderer::ScaleLightIntensity(double light_intensity,
   return final_intensity;
 }
 
-cv::Mat PTRenderer::RenderScene() {
+cv::Mat PTRenderer::RenderScene(float sigma_s, float sigma_r) {
   int rows = static_cast<int>(this->scene_.camera_.height_);
   int cols = static_cast<int>(this->scene_.camera_.width_);
 
@@ -539,7 +539,7 @@ cv::Mat PTRenderer::RenderScene() {
 
   const int N = 2;
   for (int i = 0; i < N; ++i)
-    cv::ximgproc::amFilter(geometric_information, rendered_image, rendered_image, 12.401, 0.8102, true);
+    cv::ximgproc::amFilter(geometric_information, rendered_image, rendered_image, sigma_s, sigma_r, true);
   cv::imshow("Adaptive Manifold Filter", rendered_image);
 
   //this->ApplyToneMapping(rendered_image);

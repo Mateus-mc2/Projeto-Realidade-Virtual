@@ -28,15 +28,22 @@ int main(int argc, char* argv[]) {
   // Processamento
   std::cout << "\n## Rendering started." << std::endl;
   pt::PTRenderer pt_renderer(sdl_object);
-  cv::Mat rendered_img = pt_renderer.RenderScene();
 
-  // Escrita da imagem renderizada
-  std::cout << "\n## Começo da exportação." << std::endl;
-  io::PNMWriter pnm_mgr(argv[3]);
-  if (argc > 4)
-    pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
-  else
-    pnm_mgr.WritePNMFile(rendered_img);
+  float sigma_s[] = {16, 12.401};
+  float sigma_r[] = {0.2, 0.8102};
+  int N = 2; // tamanho de sigma_s/r
+
+  for(int i = 0 ; i < N ; i++) {
+    cv::Mat rendered_img = pt_renderer.RenderScene(sigma_s[i], sigma_r[i]);
+
+    // Escrita da imagem renderizada
+    std::cout << "\n## Começo da exportação." << std::endl;
+    io::PNMWriter pnm_mgr(argv[3]);
+    if (argc > 4)
+      pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
+    else
+      pnm_mgr.WritePNMFile(rendered_img);
+  }
 
   return 0;
 }

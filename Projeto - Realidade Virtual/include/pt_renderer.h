@@ -34,7 +34,7 @@ class PTRenderer {
         distribution_(std::uniform_real_distribution<double>(0, 1)) {}
   ~PTRenderer () {};
 
-  cv::Mat RenderScene();
+  cv::Mat RenderScene(float sigma_s, float sigma_r);
 
  private:
   static const double kEps;
