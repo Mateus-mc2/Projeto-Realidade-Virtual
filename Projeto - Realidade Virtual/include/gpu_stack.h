@@ -1,18 +1,22 @@
 #ifndef GPU_STACK_H_
 #define GPU_STACK_H_
 
+#include <iostream>
+
+#include <cuda_runtime.h>
+
 namespace gpu {
 
 template<typename T>
 class GPUStack {
  public:
   // Default initial capacity is 10.
-  __host__ __device__ GPUStack() : data_(new T[10]), top_(0), capacity_(10) {}
-  __host__ __device__ GPUStack(const GPUStack<T> &stack)
+  GPUStack() : data_(new T[10]), top_(0), capacity_(10) {}
+  GPUStack(const GPUStack<T> &stack)
       : data_(new T[stack.capacity()]),
         top_(stack.top()),
         capacity_(stack.capacity()) { this->CopyFrom(stack); }
-  __host__ __device__ ~GPUStack() { delete[] this->data_; }
+  ~GPUStack() { delete[] this->data_; }
 
   __host__ __device__ GPUStack<T>& operator=(const GPUStack<T> &stack) {
     if (this != &stack) {

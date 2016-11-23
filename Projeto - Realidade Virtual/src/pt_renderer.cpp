@@ -1,8 +1,5 @@
 #include "pt_renderer.h"
 
-#include <fstream>
-#include <sstream>
-
 #include <opencv2/ximgproc/edge_filter.hpp>
 
 using Eigen::Vector2d;
@@ -13,7 +10,7 @@ namespace {
 
 typedef cv::Vec<float, 6> GeometricInfo;
 
-}
+}  // namespace
 
 const double PTRenderer::kEps = 1.0e-03;
 

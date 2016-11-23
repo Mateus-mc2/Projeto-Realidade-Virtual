@@ -1,21 +1,25 @@
 #ifndef GPU_VECTOR_H_
 #define GPU_VECTOR_H_
 
+#include <iostream>
+
+#include <cuda_runtime.h>
+
 namespace gpu {
 
 template<typename T>
 class GPUVector {
 public:
   // Default initial capacity is 10.
-  __host__ __device__ GPUVector() : data_(new T[10]), size_(0), capacity_(10) {}
-  __host__ __device__ GPUVector(const GPUStack<T> &vector)
+  GPUVector() : data_(new T[10]), size_(0), capacity_(10) {}
+  GPUVector(const GPUVector<T> &vector)
       : data_(new T[vector.capacity()]),
         size_(vector.size()),
         capacity_(vector.capacity()) {
     this->CopyFrom(vector);
   }
 
-  __host__ __device__ ~GPUVector() { delete[] this->data_; }
+  ~GPUVector() { delete[] this->data_; }
 
   __host__ __device__ T& operator[](int index) { return this->data_[index]; }
   __host__ __device__ T operator[](int index) const { return this->data_[index]; }
@@ -74,6 +78,6 @@ private:
   int capacity_;
 };
 
-}
+}  // namespace gpu
 
 #endif  // GPU_VECTOR_H_

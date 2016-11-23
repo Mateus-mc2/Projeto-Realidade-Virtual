@@ -12,20 +12,21 @@ struct GPURay;
 
 class GPURenderableObject {
  public:
-  __host__ __device__ explicit GPURenderableObject(const GPUMaterial &material)
-      : kMaterial(material),
+  GPURenderableObject() : kEps(1.0e-03f) {}
+  explicit GPURenderableObject(const GPUMaterial &material)
+      : material_(material),
         kEps(1.0e-03f) {}
-  __host__ __device__ ~GPURenderableObject() {}
+  ~GPURenderableObject() {}
 
   __host__ __device__ virtual float GetIntersectionParameter(const GPURay &ray, float3 *normal)
       const = 0;
 
   // Accessors.
-  __host__ __device__ const GPUMaterial& material() const { return this->kMaterial; }
+  __host__ __device__ const GPUMaterial& material() const { return this->material_; }
 
  protected:
   const float kEps;
-  const GPUMaterial kMaterial;
+  GPUMaterial material_;
 };
 
 }  // namespace gpu

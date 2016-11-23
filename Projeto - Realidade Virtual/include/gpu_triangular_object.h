@@ -12,11 +12,12 @@ namespace gpu {
 
 class GPUTriangularObject : public GPURenderableObject {
  public:
-  __host__ __device__ GPUTriangularObject(const GPUMaterial &material, const float3 *vertices,
-                                          const int3 *faces, int num_faces);
-  __host__ __device__ ~GPUTriangularObject() {
-    delete[] this->planes_coeffs_;
-    delete[] this->linear_systems_;
+  GPUTriangularObject() : planes_coeffs_(nullptr), linear_systems_(nullptr), num_faces_(0) {}
+  GPUTriangularObject(const GPUMaterial &material, const float3 *vertices, const int3 *faces,
+                      int num_faces);
+  ~GPUTriangularObject() {
+    if (!this->planes_coeffs_) delete[] this->planes_coeffs_;
+    if (!this->linear_systems_) delete[] this->linear_systems_;
   }
 
   __host__ __device__ float GetIntersectionParameter(const GPURay &ray, float3 *normal) const;

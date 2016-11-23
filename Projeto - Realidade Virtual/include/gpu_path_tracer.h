@@ -8,22 +8,20 @@
 #include "gpu_ray.h"
 #include "gpu_scene.h"
 
-class GPUPathTracer {
+namespace gpu {
+
+struct GPUPathTracer {
  public:
-  explicit GPUPathTracer(const GPUScene &scene)
-      : scene_(scene),
-        generator_(scene.seed),
-        distribution_(0.0f, 1.0f) {}
+  explicit GPUPathTracer(int seed)
+      : generator(seed),
+        distribution(0.0f, 1.0f) {}
 
-  cv::Mat RenderScene();
+  cv::Mat RenderScene(const GPUScene &scene);
 
- private:
-  __global__ void KernelLaunch(uchar *img_data);
-  __device__ float3 TracePath(const GPURay &ray);
-
-  GPUScene scene_;
-  thrust::minstd_rand generator_;
-  thrust::uniform_real_distribution<float> distribution_;
+  thrust::minstd_rand generator;
+  thrust::uniform_real_distribution<float> distribution;
 };
+
+}  // namespace gpu
 
 #endif  // GPU_PATH_TRACER_H_

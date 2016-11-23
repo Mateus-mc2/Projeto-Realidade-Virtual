@@ -11,9 +11,10 @@ namespace gpu {
 
 class GPUQuadric : public GPURenderableObject {
  public:
-  __host__ __device__ GPUQuadric(float a, float b, float c, float f, float g, float h, float p,
-                                 float q, float r, float d, const GPUMaterial &material);
-  __host__ __device__ ~GPUQuadric() {}
+  GPUQuadric() {}
+  GPUQuadric(float a, float b, float c, float f, float g, float h, float p,
+             float q, float r, float d, const GPUMaterial &material);
+  ~GPUQuadric() {}
 
   __host__ __device__ float GetIntersectionParameter(const GPURay &ray, float3 *normal) const;
 

@@ -7,12 +7,11 @@
 #ifndef OBJ_READER_H
 #define OBJ_READER_H
 
-#include <Eigen/Dense>
-
-#include <vector>
 #include <string>
-#include <iostream>
-#include <fstream>
+#include <vector>
+
+#include <cuda_runtime.h>
+#include <Eigen/Dense>
 
 namespace io {
 
@@ -25,6 +24,10 @@ class OBJReader {
               const std::string &file_name,
               std::vector<Eigen::Vector3d> *vertices,  // Sera preenchido
               std::vector<Eigen::Vector3i> *faces);    // Sera preenchido
+ void ReadOBJ(const std::string &file_directory,
+              const std::string &file_name,
+              std::vector<float3> *vertices,  // Sera preenchido
+              std::vector<int3> *faces);      // Sera preenchido
 
 };
 

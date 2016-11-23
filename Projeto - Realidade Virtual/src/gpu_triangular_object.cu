@@ -7,10 +7,8 @@
 
 namespace gpu {
 
-__host__ __device__ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material,
-                                                             const float3 *vertices,
-                                                             const int3 *faces,
-                                                             int num_faces)
+GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material, const float3 *vertices,
+                                         const int3 *faces, int num_faces)
     : GPURenderableObject(material),
       planes_coeffs_(new float4[num_faces]),
       linear_systems_(new GPUMatrix[3 * num_faces]),

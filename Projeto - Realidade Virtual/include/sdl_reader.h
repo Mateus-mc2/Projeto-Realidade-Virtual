@@ -7,17 +7,10 @@
 #ifndef SDL_READER_H
 #define SDL_READER_H
 
-
+#include "gpu_scene.h"
 #include "sdl_object.h"
-#include "camera.h"
-#include "light.h"
-#include "quadric.h"
-#include "triangular_object.h"
 
-#include <vector>
 #include <string>
-#include <iostream>
-#include <fstream>
 
 namespace io {
 
@@ -26,8 +19,8 @@ class SDLReader {
   SDLReader() {};
   ~SDLReader () {};
 
-  util::SDLObject ReadSDL(const std::string &file_directory, const std::string &file_name);
-
+  util::SDLObject ReadSDL(const std::string &file_directory, const std::string &filename) const;
+  gpu::GPUScene ReadGPUScene(const std::string &directory, const std::string &filename) const;
 };
 
 }  // namespace io

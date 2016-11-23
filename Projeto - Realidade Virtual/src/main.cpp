@@ -11,8 +11,7 @@
 #include <opencv2\imgproc\imgproc.hpp>
 #include <opencv2\highgui\highgui.hpp>
 
-//#include "gpu_matrix.h"
-//#include "gpu_template_matrix.h"
+#include "gpu_path_tracer.h"
 #include "pt_renderer.h"
 #include "pnm_writer.h"
 #include "sdl_reader.h"
@@ -27,6 +26,11 @@ int main(int argc, char* argv[]) {
   std::cout << "\n## Reading SDL file..." << std::endl;
   io::SDLReader sdl_reader;
   util::SDLObject sdl_object = sdl_reader.ReadSDL(argv[1], argv[2]);
+
+  // ## Testando funcionalidade da GPU.
+  gpu::GPUScene scene = sdl_reader.ReadGPUScene(argv[1], argv[2]);
+  gpu::GPUPathTracer path_tracer(scene.seed);
+  path_tracer.RenderScene(scene);
 
   // Processamento
   std::cout << "\n## Rendering started." << std::endl;

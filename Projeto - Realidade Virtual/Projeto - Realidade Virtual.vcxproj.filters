@@ -154,5 +154,8 @@
     <CudaCompile Include="src\math_lib.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="src\gpu_path_tracer.cu">
+      <Filter>Source Files\gpu</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

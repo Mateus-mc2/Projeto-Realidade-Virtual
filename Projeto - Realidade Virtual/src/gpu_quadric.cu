@@ -7,9 +7,8 @@
 
 namespace gpu {
 
-__host__ __device__ GPUQuadric::GPUQuadric(float a, float b, float c, float f, float g, float h,
-                                           float p, float q, float r, float d,
-                                           const GPUMaterial &material)
+GPUQuadric::GPUQuadric(float a, float b, float c, float f, float g, float h, float p, float q,
+                       float r, float d, const GPUMaterial &material)
     : GPURenderableObject(material) {
   this->coefficients_[project::kCoeffB] = b;
   this->coefficients_[project::kCoeffA] = a;

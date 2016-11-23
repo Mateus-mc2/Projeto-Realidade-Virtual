@@ -1,9 +1,6 @@
 #ifndef MATH_LIB_H_
 #define MATH_LIB_H_
 
-#include <cassert>
-#include <cmath>
-
 #include <cuda_runtime.h>
 #include <thrust/complex.h>
 

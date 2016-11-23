@@ -53,6 +53,7 @@
   <ItemGroup>
     <CudaCompile Include="src\gpu_linear_algebra.cu" />
     <CudaCompile Include="src\gpu_matrix.cu" />
+    <CudaCompile Include="src\gpu_path_tracer.cu" />
     <CudaCompile Include="src\gpu_quadric.cu" />
     <CudaCompile Include="src\gpu_triangular_object.cu" />
     <CudaCompile Include="src\math_lib.cu" />
