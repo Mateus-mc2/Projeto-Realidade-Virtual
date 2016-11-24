@@ -1,3 +1,4 @@
+
 #include "quadric.h"
 
 using Eigen::Vector3d;

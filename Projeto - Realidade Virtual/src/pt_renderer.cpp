@@ -540,7 +540,7 @@ cv::Mat PTRenderer::RenderScene(float sigma_s, float sigma_r) {
   const int N = 2;
   for (int i = 0; i < N; ++i)
     cv::ximgproc::amFilter(geometric_information, rendered_image, rendered_image, sigma_s, sigma_r, true);
-  cv::imshow("Adaptive Manifold Filter", rendered_image);
+  cv::imshow("Adaptive Manifold Filter" , rendered_image);
 
   //this->ApplyToneMapping(rendered_image);
   //cv::imshow("tone_mapped image", rendered_image);
