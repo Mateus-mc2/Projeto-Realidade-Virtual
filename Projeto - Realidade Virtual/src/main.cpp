@@ -15,6 +15,9 @@
 #include "sdl_reader.h"
 #include "psnr.h"
 
+#include <ctime>
+#include <cstdlib>
+
 int main(int argc, char* argv[]) {
   if (argc < 4) {
     std::cout << "  SDL input and targets missing." << std::endl;
@@ -30,22 +33,24 @@ int main(int argc, char* argv[]) {
   std::cout << "\n## Rendering started." << std::endl;
   pt::PTRenderer pt_renderer(sdl_object);
 
-  float sigma_s[] = {16, 12.401};
-  float sigma_r[] = {0.2, 0.8102};
-  int N = 2; // tamanho de sigma_s/r
+  srand(time(NULL));
+  float sigma_s, sigma_r, x;
 
-  for(int i = 0 ; i < N ; i++) {
-    cv::Mat rendered_img = pt_renderer.RenderScene(sigma_s[i], sigma_r[i]);
-  
-	psnr
-	// Escrita da imagem renderizada
-	std::cout << "\n## Começo da exportação." << std::endl;
-	io::PNMWriter pnm_mgr(argv[3]);
-	if (argc > 4)
-		pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
-	else
-		pnm_mgr.WritePNMFile(rendered_img);
-	}
+  for(int i = 0 ; i < 100 ; i++) {
+    x = rand();
+    sigma_s = 1.0 + (x/(RAND_MAX/6.0));
+    sigma_r = 0.5 + (x/(RAND_MAX/0.45));
+
+    cv::Mat rendered_img = pt_renderer.RenderScene(sigma_s, sigma_r);
+    psnr
+    // Escrita da imagem renderizada
+    std::cout << "\n## Começo da exportação." << std::endl;
+    io::PNMWriter pnm_mgr(argv[3]);
+    if (argc > 4)
+		  pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
+    else
+		  pnm_mgr.WritePNMFile(rendered_img);
+  }
 
   return 0;
 }
