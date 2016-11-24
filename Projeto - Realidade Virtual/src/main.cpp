@@ -28,7 +28,6 @@ int main(int argc, char* argv[]) {
   io::SDLReader sdl_reader;
   util::SDLObject sdl_object = sdl_reader.ReadSDL(argv[1], argv[2]);
 
-
   // Processamento
   std::cout << "\n## Rendering started." << std::endl;
   pt::PTRenderer pt_renderer(sdl_object);
@@ -43,16 +42,15 @@ int main(int argc, char* argv[]) {
 
   for(int i = 0 ; i < N ; i++) {
     cv::Mat rendered_img = pt_renderer.RenderScene(sigma_s[i], sigma_r[i]);
-	noise[i] = psnr_calculator.psnr(rendered_img, rendered_img);
-	// Escrita da imagem renderizada
-	std::cout << "\n## Começo da exportação." << std::endl;
-	io::PNMWriter pnm_mgr(argv[3]);
-	file << "Noise: " << noise[i] << std::endl << "sigma_s: " << sigma_s[i] << std::endl << "sigma_r: "<< sigma_r[i] << std::endl;
-
-	if (argc > 4)
-		pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
-	else
-		pnm_mgr.WritePNMFile(rendered_img);
+    noise[i] = psnr_calculator.psnr(rendered_img, rendered_img);
+    // Escrita da imagem renderizada
+    std::cout << "\n## Começo da exportação." << std::endl;
+    io::PNMWriter pnm_mgr(argv[3]);
+    file << "Noise: " << noise[i] << std::endl << "sigma_s: " << sigma_s[i] << std::endl << "sigma_r: "<< sigma_r[i] << std::endl;
+    if (argc > 4)
+      pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
+    else
+      pnm_mgr.WritePNMFile(rendered_img);
   }
 
   file.close();
