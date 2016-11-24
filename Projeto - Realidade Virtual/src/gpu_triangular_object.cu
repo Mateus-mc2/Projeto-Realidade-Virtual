@@ -7,8 +7,26 @@
 
 namespace gpu {
 
-GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material, const float3 *vertices,
-                                         const int3 *faces, int num_faces)
+__host__ __device__ GPUTriangularObject::GPUTriangularObject(const GPUTriangularObject &obj)
+    : GPURenderableObject(obj.material()),
+      planes_coeffs_(new float4[obj.num_faces()]),
+      linear_systems_(new GPUMatrix[3 * obj.num_faces()]),
+      num_faces_(obj.num_faces()) {
+  const float4 *planes_coeffs = obj.planes_coeffs();
+  const GPUMatrix *linear_systems = obj.linear_systems();
+
+  for (int i = 0; i < num_faces_; ++i) {
+    this->planes_coeffs_[i] = planes_coeffs[i];
+
+    this->linear_systems_[3 * i] = linear_systems_[3 * i];
+    this->linear_systems_[3 * i + 1] = linear_systems_[3 * i + 1];
+    this->linear_systems_[3 * i + 2] = linear_systems_[3 * i + 2];
+  }
+}
+
+__host__ __device__ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material,
+                                                             const float3 *vertices,
+                                                             const int3 *faces, int num_faces)
     : GPURenderableObject(material),
       planes_coeffs_(new float4[num_faces]),
       linear_systems_(new GPUMatrix[3 * num_faces]),

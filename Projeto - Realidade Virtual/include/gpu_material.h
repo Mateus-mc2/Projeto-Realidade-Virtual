@@ -7,9 +7,9 @@ namespace gpu {
 
 struct GPUMaterial {
  public:
-  GPUMaterial() {}
-  GPUMaterial(float3 color, float refraction_coeff, float k_a, float k_d, float k_s, float k_t,
-              float n)
+  __host__ __device__ GPUMaterial() {}
+  __host__ __device__ GPUMaterial(float3 color, float refraction_coeff, float k_a, float k_d,
+                                  float k_s, float k_t, float n)
       : red(color.x),
         green(color.y),
         blue(color.z),
@@ -18,7 +18,7 @@ struct GPUMaterial {
         k_d(k_d),
         k_t(k_t),
         n(n) {}
-  ~GPUMaterial() {}
+  __host__ __device__ ~GPUMaterial() {}
 
   float red;   // Red component.
   float green; // Green component.

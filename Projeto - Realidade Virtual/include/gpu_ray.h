@@ -13,21 +13,21 @@ class GPURenderableObject;
 // TODO(Mateus): implement a stack on device (thrust::device_vector cannot be used on device).
 struct GPURay {
  public:
-  GPURay(const float3 &origin, const float3 &direction)
+  __host__ __device__ GPURay(const float3 &origin, const float3 &direction)
       : origin(origin),
         direction(direction),
         depth(1) {}
-  GPURay(const float3 &origin, const float3 &direction, int depth)
+  __host__ __device__ GPURay(const float3 &origin, const float3 &direction, int depth)
       : origin(origin),
         direction(direction),
         depth(depth) {}
-  GPURay(const float3 &origin, const float3 &direction,
-         const GPUStack<GPURenderableObject*> &objs_stack, int depth)
+  __host__ __device__ GPURay(const float3 &origin, const float3 &direction,
+                             const GPUStack<GPURenderableObject*> &objs_stack, int depth)
        : origin(origin),
          direction(direction),
          objs_stack(objs_stack),
          depth(depth) {}
-  ~GPURay() {}
+  __host__ __device__ ~GPURay() {}
 
   float3 origin;
   float3 direction;

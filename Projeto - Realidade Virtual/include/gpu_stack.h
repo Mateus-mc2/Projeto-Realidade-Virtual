@@ -11,12 +11,12 @@ template<typename T>
 class GPUStack {
  public:
   // Default initial capacity is 10.
-  GPUStack() : data_(new T[10]), top_(0), capacity_(10) {}
-  GPUStack(const GPUStack<T> &stack)
+  __host__ __device__ GPUStack() : data_(new T[10]), top_(0), capacity_(10) {}
+  __host__ __device__ GPUStack(const GPUStack<T> &stack)
       : data_(new T[stack.capacity()]),
         top_(stack.top()),
         capacity_(stack.capacity()) { this->CopyFrom(stack); }
-  ~GPUStack() { delete[] this->data_; }
+  __host__ __device__ ~GPUStack() { delete[] this->data_; }
 
   __host__ __device__ GPUStack<T>& operator=(const GPUStack<T> &stack) {
     if (this != &stack) {
@@ -67,20 +67,14 @@ class GPUStack {
 
  private:
   __host__ __device__ void CopyFrom(const GPUStack<T> &stack) {
-    const T *data = stack.data();
-
-    for (int i = 0; i < stack.top(); ++i) {
-      this->data_[i] = data[i];
-    }
+    memcpy(this->data_, stack.data(), sizeof(T) * this->top_);
   }
 
   __host__ __device__ void ResizeStack() {
     this->capacity_ *= 2;
     T *new_stack = new T[this->capacity_];
 
-    for (int i = 0; i < this->top_; ++i) {
-      new_stack[i] = this->data_[i];
-    }
+    memcpy(new_stack, this->data_, sizeof(T) * this->top_);
 
     delete[] this->data_;
     this->data_ = new_stack;

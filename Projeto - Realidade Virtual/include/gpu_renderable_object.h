@@ -12,11 +12,11 @@ struct GPURay;
 
 class GPURenderableObject {
  public:
-  GPURenderableObject() : kEps(1.0e-03f) {}
-  explicit GPURenderableObject(const GPUMaterial &material)
+  __host__ __device__ GPURenderableObject() : kEps(1.0e-03f) {}
+  __host__ __device__ explicit GPURenderableObject(const GPUMaterial &material)
       : material_(material),
         kEps(1.0e-03f) {}
-  ~GPURenderableObject() {}
+  __host__ __device__ ~GPURenderableObject() {}
 
   __host__ __device__ virtual float GetIntersectionParameter(const GPURay &ray, float3 *normal)
       const = 0;

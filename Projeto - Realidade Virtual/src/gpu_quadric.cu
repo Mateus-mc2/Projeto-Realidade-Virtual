@@ -7,11 +7,28 @@
 
 namespace gpu {
 
-GPUQuadric::GPUQuadric(float a, float b, float c, float f, float g, float h, float p, float q,
-                       float r, float d, const GPUMaterial &material)
+__host__ __device__ GPUQuadric::GPUQuadric(const GPUQuadric &quadric)
+    : GPURenderableObject(quadric.material()) {
+  const float *coeffs = quadric.coefficients();
+
+  this->coefficients_[project::kCoeffA] = coeffs[project::kCoeffA];
+  this->coefficients_[project::kCoeffB] = coeffs[project::kCoeffB];
+  this->coefficients_[project::kCoeffC] = coeffs[project::kCoeffC];
+  this->coefficients_[project::kCoeffF] = coeffs[project::kCoeffF];
+  this->coefficients_[project::kCoeffG] = coeffs[project::kCoeffG];
+  this->coefficients_[project::kCoeffH] = coeffs[project::kCoeffH];
+  this->coefficients_[project::kCoeffP] = coeffs[project::kCoeffP];
+  this->coefficients_[project::kCoeffQ] = coeffs[project::kCoeffQ];
+  this->coefficients_[project::kCoeffR] = coeffs[project::kCoeffR];
+  this->coefficients_[project::kCoeffD] = coeffs[project::kCoeffD];
+}
+
+__host__ __device__ GPUQuadric::GPUQuadric(float a, float b, float c, float f, float g, float h,
+                                           float p, float q, float r, float d,
+                                           const GPUMaterial &material)
     : GPURenderableObject(material) {
-  this->coefficients_[project::kCoeffB] = b;
   this->coefficients_[project::kCoeffA] = a;
+  this->coefficients_[project::kCoeffB] = b;
   this->coefficients_[project::kCoeffC] = c;
   this->coefficients_[project::kCoeffF] = f;
   this->coefficients_[project::kCoeffG] = g;

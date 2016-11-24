@@ -15,11 +15,13 @@ namespace gpu {
 
 struct GPUScene {
  public:
-  GPUScene() {}
-  GPUScene(const GPUCamera &camera, const float3 &bg_color, float ambient_light_intensity,
-           const GPUVector<GPULight*> &lights, const GPUVector<GPUQuadric*> &quadrics,
-           const GPUVector<GPUTriangularObject*> &triangular_objs, bool use_anti_aliasing,
-           int num_paths, int max_depth, float tone_mapping, int seed, int light_sampling_type)
+  __host__ __device__ GPUScene() {}
+  __host__ __device__ GPUScene(const GPUCamera &camera, const float3 &bg_color,
+                               float ambient_light_intensity, const GPUVector<GPULight> &lights,
+                               const GPUVector<GPUQuadric> &quadrics,
+                               const GPUVector<GPUTriangularObject> &triangular_objs,
+                               bool use_anti_aliasing, int num_paths, int max_depth,
+                               float tone_mapping, int seed, int light_sampling_type)
       : camera(camera),
         bg_color(bg_color),
         lights(lights),
@@ -33,18 +35,18 @@ struct GPUScene {
         seed(seed),
         light_sampling_type(light_sampling_type) {}
 
-  ~GPUScene() {
-    for (int i = 0; i < lights.size(); ++i) delete lights[i];
-    for (int i = 0; i < quadrics.size(); ++i) delete quadrics[i];
-    for (int i = 0; i < triangular_objs.size(); ++i) delete triangular_objs[i];
+  __host__ __device__~GPUScene() {
+    //for (int i = 0; i < lights.size(); ++i) delete lights[i];
+    //for (int i = 0; i < quadrics.size(); ++i) delete quadrics[i];
+    //for (int i = 0; i < triangular_objs.size(); ++i) delete triangular_objs[i];
   }
 
   GPUCamera camera;
   float3 bg_color;
 
-  GPUVector<GPULight*> lights;
-  GPUVector<GPUQuadric*> quadrics;
-  GPUVector<GPUTriangularObject*> triangular_objs;
+  GPUVector<GPULight> lights;
+  GPUVector<GPUQuadric> quadrics;
+  GPUVector<GPUTriangularObject> triangular_objs;
 
   float ambient_light_intensity;
   float tone_mapping;

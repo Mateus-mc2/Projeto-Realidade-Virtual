@@ -10,15 +10,16 @@ namespace gpu {
 // Point particle light struct for GPU.
 struct GPULight {
  public:
-  GPULight() {}
-  GPULight(const float3 &position, float red, float green, float blue, float intensity)
+  __host__ __device__ GPULight() {}
+  __host__ __device__ GPULight(const float3 &position, float red, float green, float blue,
+                               float intensity)
       : position(position),
         red(red),
         green(green),
         blue(blue),
         intensity(intensity) {}
 
-  ~GPULight() {}
+  __host__ __device__ ~GPULight() {}
 
   float3 position;
 

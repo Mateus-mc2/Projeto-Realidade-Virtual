@@ -227,9 +227,9 @@ gpu::GPUScene SDLReader::ReadGPUScene(const std::string &directory,
   gpu::GPUCamera camera;
   float3 bg_color;
 
-  gpu::GPUVector<gpu::GPULight*> point_lights;
-  gpu::GPUVector<gpu::GPUQuadric*> quadrics_objects;
-  gpu::GPUVector<gpu::GPUTriangularObject*> triangular_objects;
+  gpu::GPUVector<gpu::GPULight> point_lights;
+  gpu::GPUVector<gpu::GPUQuadric> quadrics_objects;
+  gpu::GPUVector<gpu::GPUTriangularObject> triangular_objects;
 
   bool use_anti_aliasing;
 
@@ -299,7 +299,7 @@ gpu::GPUScene SDLReader::ReadGPUScene(const std::string &directory,
         sdl_file >> b;
         sdl_file >> intensity;
 
-        point_lights.PushBack(new gpu::GPULight(position, r, g, b, intensity));
+        point_lights.PushBack(gpu::GPULight(position, r, g, b, intensity));
       } else if (word == "npaths") {         // Numero de raios por pixel
         sdl_file >> num_paths;
 
@@ -343,7 +343,7 @@ gpu::GPUScene SDLReader::ReadGPUScene(const std::string &directory,
         sdl_file >> n;
 
         gpu::GPUMaterial new_material(color, refraction, ka, kd, ks, kt, n);
-        quadrics_objects.PushBack(new gpu::GPUQuadric(a, b, c, f, g, h, p, q, r, d, new_material));
+        quadrics_objects.PushBack(gpu::GPUQuadric(a, b, c, f, g, h, p, q, r, d, new_material));
       } else if (word == "object") {         // Objetos baseados em malhas trianguladas
         std::string obj_file_name;
         float3 color;
@@ -371,8 +371,8 @@ gpu::GPUScene SDLReader::ReadGPUScene(const std::string &directory,
         obj_reader.ReadOBJ(directory, obj_file_name, &new_vertices, &new_faces);
         int num_faces = static_cast<int>(new_faces.size());
 
-        triangular_objects.PushBack(new gpu::GPUTriangularObject(new_material, new_vertices.data(),
-                                                                 new_faces.data(), num_faces));
+        triangular_objects.PushBack(gpu::GPUTriangularObject(new_material, new_vertices.data(),
+                                                             new_faces.data(), num_faces));
       } else if(word == "antialiasing") {
         sdl_file >> use_anti_aliasing;
 
