@@ -13,6 +13,7 @@
 #include "pt_renderer.h"
 #include "pnm_writer.h"
 #include "sdl_reader.h"
+#include "psnr.h"
 
 int main(int argc, char* argv[]) {
   if (argc < 4) {
@@ -35,15 +36,16 @@ int main(int argc, char* argv[]) {
 
   for(int i = 0 ; i < N ; i++) {
     cv::Mat rendered_img = pt_renderer.RenderScene(sigma_s[i], sigma_r[i]);
-
-    // Escrita da imagem renderizada
-    std::cout << "\n## Começo da exportação." << std::endl;
-    io::PNMWriter pnm_mgr(argv[3]);
-    if (argc > 4)
-      pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
-    else
-      pnm_mgr.WritePNMFile(rendered_img);
-  }
+  
+	psnr
+	// Escrita da imagem renderizada
+	std::cout << "\n## Começo da exportação." << std::endl;
+	io::PNMWriter pnm_mgr(argv[3]);
+	if (argc > 4)
+		pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
+	else
+		pnm_mgr.WritePNMFile(rendered_img);
+	}
 
   return 0;
 }
