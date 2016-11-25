@@ -49,7 +49,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\sdl_reader.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\cpu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -116,9 +116,6 @@
     <ClInclude Include="include\pnm_writer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\sdl_reader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\gpu_triangular_object.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
@@ -137,6 +134,12 @@
     <ClInclude Include="include\gpu_vector.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
+    <ClInclude Include="include\sdl_reader.h">
+      <Filter>Header Files\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gpu_sdl_reader.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\gpu_quadric.cu">
@@ -153,6 +156,9 @@
     </CudaCompile>
     <CudaCompile Include="src\math_lib.cu">
       <Filter>Source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\gpu_sdl_reader.cu">
+      <Filter>Source Files\gpu</Filter>
     </CudaCompile>
     <CudaCompile Include="src\gpu_path_tracer.cu">
       <Filter>Source Files\gpu</Filter>

@@ -327,7 +327,6 @@ void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
   }
 }
 
-
 double PTRenderer::ScaleLightIntensity(double light_intensity,
                                        const Eigen::Vector3d &light_position,
                                        const util::Ray &shadow_ray) {

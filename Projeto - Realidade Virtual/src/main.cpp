@@ -12,6 +12,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "gpu_path_tracer.h"
+#include "gpu_sdl_reader.h"
 #include "pt_renderer.h"
 #include "pnm_writer.h"
 #include "sdl_reader.h"
@@ -28,37 +29,37 @@ int main(int argc, char* argv[]) {
   util::SDLObject sdl_object = sdl_reader.ReadSDL(argv[1], argv[2]);
 
   // ## Testando funcionalidade da GPU.
-  gpu::GPUScene scene = sdl_reader.ReadGPUScene(argv[1], argv[2]);
+  gpu::GPUScene scene = gpu::io::ReadGPUScene(argv[1], argv[2]);
   gpu::GPUPathTracer path_tracer(scene.seed);
-  path_tracer.RenderScene(scene);
+  cv::Mat rendered_img = path_tracer.RenderScene(scene);
 
   // Processamento
-  std::cout << "\n## Rendering started." << std::endl;
-  pt::PTRenderer pt_renderer(sdl_object);
+  //std::cout << "\n## Rendering started." << std::endl;
+  //pt::PTRenderer pt_renderer(sdl_object);
 
-  std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-  cv::Mat rendered_img = pt_renderer.RenderScene();
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  //std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+  //cv::Mat rendered_img = pt_renderer.RenderScene();
+  //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-  std::chrono::duration<double> time_elapsed =
-      std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-  std::cout << "  Time elapsed: " << time_elapsed.count() << " seconds." << std::endl;
+  //std::chrono::duration<double> time_elapsed =
+  //    std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+  //std::cout << "  Time elapsed: " << time_elapsed.count() << " seconds." << std::endl;
 
   cv::imshow("Rendered Image", rendered_img);
   std::cout << "  Press any key to close the image." << std::endl;
   cv::waitKey(0);
   cv::destroyAllWindows();
 
-  // Escrita da imagem renderizada
-  rendered_img *= 255;
-  std::cout << "\n## Exporting file..." << std::endl;
-  io::PNMWriter pnm_mgr(argv[3]);
+  //// Escrita da imagem renderizada
+  //rendered_img *= 255;
+  //std::cout << "\n## Exporting file..." << std::endl;
+  //io::PNMWriter pnm_mgr(argv[3]);
 
-  if (argc > 4) {
-    pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
-  } else {
-    pnm_mgr.WritePNMFile(rendered_img);
-  }
+  //if (argc > 4) {
+  //  pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
+  //} else {
+  //  pnm_mgr.WritePNMFile(rendered_img);
+  //}
 
   return 0;
 }

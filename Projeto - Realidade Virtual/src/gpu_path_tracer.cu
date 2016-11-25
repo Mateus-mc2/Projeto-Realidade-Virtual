@@ -8,6 +8,8 @@
 #include <thrust/device_malloc.h>
 #include <thrust/device_new.h>
 #include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
+#include <thrust/execution_policy.h>
 
 #include "math_lib.h"
 
@@ -25,46 +27,51 @@ struct GeometricInfo {
   float3 normal;
 };
 
-//__device__ __managed__ float3 *img_data;
-//__device__ __managed__ GeometricInfo *geometric_info_data;
 
-__device__ void GetNearestObjectAndIntersection(GPUScene *scene, const GPURay &ray,
-                                                gpu::GPURenderableObject **object,
-                                                float *param, float3 *normal) {
+__device__ void GetNearestObjectAndIntersection(const GPURay &ray, const GPUScene *scene,
+                                                float *param, float3 *normal,
+                                                gpu::GPUTriangularObject *object) {
+  *param = -1.0f;
+  float3 curr_normal;
+
+  for (int i = 0; i < scene->triangular_objs.size(); ++i) {
+    float t = scene->triangular_objs[i].GetIntersectionParameter(ray, &curr_normal);
+
+    if (*param < 0.0f || (*param > t && t > 0.0f)) {
+      *object = scene->triangular_objs[i];
+      *param = t;
+      *normal = curr_normal;
+    }
+  }
+}
+
+__device__ void GetNearestObjectAndIntersection(const GPURay &ray, const GPUScene *scene,
+                                                float *param, float3 *normal,
+                                                gpu::GPUQuadric *object) {
   *param = -1.0f;
   float3 curr_normal;
 
   for (int i = 0; i < scene->quadrics.size(); ++i) {
     float t = scene->quadrics[i].GetIntersectionParameter(ray, &curr_normal);
 
-    if (*param < 0.0f || (t > 0.0f && *param > t)) {
+    if (*param < 0.0f || (*param > t && t > 0.0f)) {
+      *object = scene->quadrics[i];
       *param = t;
-      *object = &scene->quadrics[i];
-      *normal = curr_normal;
-    }
-  }
-
-  for (int i = 0; i < scene->triangular_objs.size(); ++i) {
-    float t = scene->triangular_objs[i].GetIntersectionParameter(ray, &curr_normal);
-
-    if (*param < 0.0f || (t > 0.0f && *param > t)) {
-      *param = t;
-      *object = &scene->quadrics[i];
       *normal = curr_normal;
     }
   }
 }
 
-__device__ float3 TracePath(GPUScene *scene, const thrust::minstd_rand &generator,
-                            thrust::uniform_real_distribution<float> &distribution,
+__device__ float3 TracePath(const GPUScene *scene, thrust::minstd_rand *generator,
+                            thrust::uniform_real_distribution<float> *distribution,
                             const GPURay &ray) {
-  float3 color = make_float3(0.0f, 0.0f, 0.0f);
+  float3 color = make_float3(1.0f, 1.0f, 1.0f);
 
   return color;
 }
 
-__global__ void KernelLaunch(GPUScene *scene, thrust::minstd_rand generator,
-                             thrust::uniform_real_distribution<float> distribution,
+__global__ void LaunchKernel(const GPUScene *scene, thrust::minstd_rand *generator,
+                             thrust::uniform_real_distribution<float> *distribution,
                              int size, float3 *img_data, GeometricInfo *geometric_info_data) {
   int i = blockIdx.x;
   int j = threadIdx.x;
@@ -74,8 +81,8 @@ __global__ void KernelLaunch(GPUScene *scene, thrust::minstd_rand generator,
     float pixel_width = (scene->camera.top.x - scene->camera.bottom.x) / scene->camera.width;
     float pixel_height = (scene->camera.top.y - scene->camera.bottom.y) / scene->camera.height;
 
-    float x_t = scene->use_anti_aliasing ? distribution(generator) : 0.5f;
-    float y_t = scene->use_anti_aliasing ? distribution(generator) : 0.5f;
+    float x_t = scene->use_anti_aliasing ? (*distribution)(*generator) : 0.5f;
+    float y_t = scene->use_anti_aliasing ? (*distribution)(*generator) : 0.5f;
     float3 looking_at, direction;
 
     looking_at.x = scene->camera.bottom.x + x_t*pixel_width + j*pixel_width;
@@ -96,10 +103,16 @@ __global__ void KernelLaunch(GPUScene *scene, thrust::minstd_rand generator,
     img_data[idx].z += color.z;
 
     // Gather geometric information.
-    gpu::GPURenderableObject *object;
-    float t;
+    gpu::GPUQuadric quadric;
+    gpu::GPUTriangularObject obj;
+    float t1, t2;
+    float3 normal1, normal2;
 
-    GetNearestObjectAndIntersection(scene, ray, &object, &t, &geometric_info_data[idx].normal);
+    GetNearestObjectAndIntersection(ray, scene, &t1, &normal1, &quadric);
+    GetNearestObjectAndIntersection(ray, scene, &t2, &normal2, &obj);
+
+    float t = t1 < t2 ? t1 : t2;
+    geometric_info_data[idx].normal = t1 < t2 ? normal1 : normal2;
 
     geometric_info_data[idx].position.x = ray.origin.x + t * ray.direction.x;
     geometric_info_data[idx].position.y = ray.origin.y + t * ray.direction.y;
@@ -113,35 +126,40 @@ cv::Mat GPUPathTracer::RenderScene(const GPUScene &scene) {
   int rows = scene.camera.height;
   int cols = scene.camera.width;
 
+  cudaError_t error;
   float3 *img_data;
   GeometricInfo *geometric_info_data;
-  cudaError_t error;
 
   error = cudaMallocManaged(&img_data, sizeof(float3) * rows * cols);
   if (error != cudaSuccess) {
-    std::cout << "Cuda error " << error << std::endl;
+    std::cerr << "Cuda error " << error << std::endl;
     return cv::Mat();
   }
 
   error = cudaMallocManaged(&geometric_info_data, sizeof(GeometricInfo) * rows * cols);
   if (error != cudaSuccess) {
-    std::cout << "Cuda error " << error << std::endl;
+    std::cerr << "Cuda error " << error << std::endl;
     return cv::Mat();
   }
 
-  std::cout << img_data[0].x << std::endl;
-  std::cout << geometric_info_data[0].position.x << std::endl;
+  GPUScene *device_scene;
+  error = cudaMalloc(&device_scene, sizeof(GPUScene));
+  if (error != cudaSuccess) {
+    std::cerr << "Cuda error " << error << std::endl;
+    return cv::Mat();
+  }
+
+  error = cudaMemcpy(device_scene, &scene, sizeof(GPUScene), cudaMemcpyHostToDevice);
+  if (error != cudaSuccess) {
+    std::cerr << "Cuda error " << error << std::endl;
+    return cv::Mat();
+  }
 
   int num_blocks = rows * cols / kNumThreads + 1;
-  thrust::device_ptr<GPUScene> d_ptr = thrust::device_malloc<GPUScene>(sizeof(GPUScene));
-  d_ptr = thrust::device_new<GPUScene>(d_ptr, scene);
-
-  KernelLaunch<<<num_blocks, kNumThreads>>>(thrust::raw_pointer_cast(scene), this->generator,
-                                            this->distribution, rows * cols, img_data,
-                                            geometric_info_data);
+  LaunchKernel<<<num_blocks, kNumThreads>>>(device_scene, this->generator, this->distribution,
+                                            rows * cols, img_data, geometric_info_data);
   cudaDeviceSynchronize();
-
-  thrust::device_free(d_ptr);
+  cudaFree(device_scene);
 
   cv::Mat rendered_img(rows, cols, CV_32FC3);
   cv::Mat geometric_info(rows, cols, CV_32FC(6));
@@ -168,9 +186,6 @@ cv::Mat GPUPathTracer::RenderScene(const GPUScene &scene) {
       info_row_ptr[j][5] = geometric_info_data[idx].normal.x;
     }
   }
-
-  cudaFree(img_data);
-  cudaFree(geometric_info_data);
 
   rendered_img /= scene.num_paths;
   //if (rows * cols > 0)

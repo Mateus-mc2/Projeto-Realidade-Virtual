@@ -7,7 +7,6 @@
 #ifndef SDL_READER_H
 #define SDL_READER_H
 
-#include "gpu_scene.h"
 #include "sdl_object.h"
 
 #include <string>
@@ -20,7 +19,6 @@ class SDLReader {
   ~SDLReader () {};
 
   util::SDLObject ReadSDL(const std::string &file_directory, const std::string &filename) const;
-  gpu::GPUScene ReadGPUScene(const std::string &directory, const std::string &filename) const;
 };
 
 }  // namespace io

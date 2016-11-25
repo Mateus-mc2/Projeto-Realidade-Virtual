@@ -20,15 +20,10 @@ class OBJReader {
   OBJReader() {};
   ~OBJReader () {};
 
- void ReadOBJ(const std::string &file_directory,
-              const std::string &file_name,
-              std::vector<Eigen::Vector3d> *vertices,  // Sera preenchido
-              std::vector<Eigen::Vector3i> *faces);    // Sera preenchido
- void ReadOBJ(const std::string &file_directory,
-              const std::string &file_name,
-              std::vector<float3> *vertices,  // Sera preenchido
-              std::vector<int3> *faces);      // Sera preenchido
-
+  void ReadOBJ(const std::string &file_directory,
+               const std::string &file_name,
+               std::vector<Eigen::Vector3d> *vertices,  // Sera preenchido
+               std::vector<Eigen::Vector3i> *faces);    // Sera preenchido
 };
 
 }  // namespace io

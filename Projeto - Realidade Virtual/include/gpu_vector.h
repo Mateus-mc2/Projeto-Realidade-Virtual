@@ -22,7 +22,7 @@ class GPUVector {
   __host__ __device__ ~GPUVector() { delete[] this->data_; }
 
   __host__ __device__ T& operator[](int index) { return this->data_[index]; }
-  __host__ __device__ T operator[](int index) const { return this->data_[index]; }
+  __host__ __device__ T& operator[](int index) const { return this->data_[index]; }
 
   __host__ __device__ GPUVector<T>& operator=(const GPUVector<T> &vector) {
     if (this != &vector) {

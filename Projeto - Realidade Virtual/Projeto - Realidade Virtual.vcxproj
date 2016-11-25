@@ -32,6 +32,7 @@
     <ClInclude Include="include\gpu_ray.h" />
     <ClInclude Include="include\gpu_renderable_object.h" />
     <ClInclude Include="include\gpu_scene.h" />
+    <ClInclude Include="include\gpu_sdl_reader.h" />
     <ClInclude Include="include\gpu_stack.h" />
     <ClInclude Include="include\gpu_triangular_object.h" />
     <ClInclude Include="include\gpu_vector.h" />
@@ -55,6 +56,7 @@
     <CudaCompile Include="src\gpu_matrix.cu" />
     <CudaCompile Include="src\gpu_path_tracer.cu" />
     <CudaCompile Include="src\gpu_quadric.cu" />
+    <CudaCompile Include="src\gpu_sdl_reader.cu" />
     <CudaCompile Include="src\gpu_triangular_object.cu" />
     <CudaCompile Include="src\math_lib.cu" />
   </ItemGroup>
@@ -116,7 +118,7 @@
       <Defines>_SCL_SECURE_NO_WARNINGS</Defines>
       <AdditionalOptions>-Xcompiler "/wd 4819" %(AdditionalOptions)</AdditionalOptions>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
-      <CodeGeneration>compute_35,sm_35</CodeGeneration>
+      <CodeGeneration>compute_20,sm_20;%(CodeGeneration)</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -141,7 +143,7 @@
       <Defines>_SCL_SECURE_NO_WARNINGS</Defines>
       <AdditionalOptions>-Xcompiler "/wd 4819" %(AdditionalOptions)</AdditionalOptions>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
-      <CodeGeneration>compute_35,sm_35</CodeGeneration>
+      <CodeGeneration>compute_20,sm_20;%(CodeGeneration)</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

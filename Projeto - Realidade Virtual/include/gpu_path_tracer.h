@@ -3,6 +3,9 @@
 
 #include <cuda_runtime.h>
 #include <opencv2/core/core.hpp>
+#include <thrust/device_free.h>
+#include <thrust/device_new.h>
+#include <thrust/device_ptr.h>
 #include <thrust/random.h>
 
 #include "gpu_ray.h"
@@ -12,14 +15,22 @@ namespace gpu {
 
 struct GPUPathTracer {
  public:
-  explicit GPUPathTracer(int seed)
-      : generator(seed),
-        distribution(0.0f, 1.0f) {}
+  explicit GPUPathTracer(int seed) {
+    cudaMallocManaged(&this->generator, sizeof(thrust::minstd_rand));
+    cudaMallocManaged(&this->distribution, sizeof(thrust::uniform_real_distribution<float>));
+
+    this->generator->seed(seed);
+  }
+
+  ~GPUPathTracer() {
+    cudaFree(this->generator);
+    cudaFree(this->distribution);
+  }
 
   cv::Mat RenderScene(const GPUScene &scene);
 
-  thrust::minstd_rand generator;
-  thrust::uniform_real_distribution<float> distribution;
+  thrust::minstd_rand* generator;
+  thrust::uniform_real_distribution<float> *distribution;
 };
 
 }  // namespace gpu

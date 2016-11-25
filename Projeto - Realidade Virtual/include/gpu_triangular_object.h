@@ -10,10 +10,11 @@
 
 namespace gpu {
 
-class GPUTriangularObject : public GPURenderableObject {
+class GPUTriangularObject {
  public:
   __host__ __device__ GPUTriangularObject()
-      : planes_coeffs_(nullptr),
+      : kEps(1.0e-3f),
+        planes_coeffs_(nullptr),
         linear_systems_(nullptr),
         num_faces_(0) {}
   __host__ __device__ GPUTriangularObject(const GPUTriangularObject &object);
@@ -24,14 +25,19 @@ class GPUTriangularObject : public GPURenderableObject {
     if (!this->linear_systems_) delete[] this->linear_systems_;
   }
 
+  __host__ __device__ GPUTriangularObject& operator=(const GPUTriangularObject &obj);
+
   __host__ __device__ float GetIntersectionParameter(const GPURay &ray, float3 *normal) const;
 
   // Accessors.
-  const float4* planes_coeffs() const { return this->planes_coeffs_; }
-  const GPUMatrix* linear_systems() const { return this->linear_systems_; }
-  int num_faces() const { return this->num_faces_; }
+  __host__ __device__ const GPUMaterial& material() const { return this->material_; }
+  __host__ __device__ const float4* planes_coeffs() const { return this->planes_coeffs_; }
+  __host__ __device__ const GPUMatrix* linear_systems() const { return this->linear_systems_; }
+  __host__ __device__ int num_faces() const { return this->num_faces_; }
 
  private:
+  const float kEps;
+  GPUMaterial material_;
   float4* planes_coeffs_;      // Plane coefficients where each face belongs.
   GPUMatrix* linear_systems_;  // Upper triangular system matrices.
   int num_faces_;
