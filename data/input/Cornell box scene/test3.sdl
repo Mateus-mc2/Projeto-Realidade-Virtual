@@ -7,17 +7,17 @@ antialiasing 1
 ### lightsamplingtype -> 1- grade; 2- area determina numero de raios randomicos no triangulo;
 lightsamplingtype 1
 
-npaths 3
-maxdepth 2
+npaths 2
+maxdepth 1
 tonemapping 0.0
 seed 9
 
 # pointlight definition
 # x y z     red green blue     intensity
-pointlight 1.0 3.5 -27     1 1 1     0.8
 pointlight 1.0 3.5 -23     1 1 1     0.8
-pointlight -1.0 3.5 -27     1 1 1     0.8
+pointlight 1.0 3.5 -19     1 1 1     0.8
 pointlight -1.0 3.5 -23     1 1 1     0.8
+pointlight -1.0 3.5 -19     1 1 1     0.8
 # pointlight 0.0 2.0 -15     1 1 1     0.8
 
 # object definition
@@ -25,7 +25,7 @@ pointlight -1.0 3.5 -23     1 1 1     0.8
 # Sphere 1
 objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 6.0 1.5 30.0 929.25     1 1 1     1.5     0.4 0.1 0.4 0.0 5
 # Sphere 2
-objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 0.0 1.5 30.0 893.25     1 1 1     1.5     0.4 0.3 0.2 0.0 5
+objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 0.0 1.5 30.0 893.25     1 1 1     1.5     0.4 0.3 0.2 0.4 5
 # Sphere 3
 objectquadric 1.0 1.0 1.0 0.0 0.0 0.0 -6.0 1.5 30.0 929.25     1 1 1     1.5     0.4 0.1 0.3 0.0 5
 # Plane 1 (right wall - somewhat blue)
@@ -37,7 +37,7 @@ objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.5 65.6     1 1 1     1.0     0.3
 # Plane 4 (left wall - somewhat cyan)
 objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.5 0.0 0.0 10.0     0.2 0.7 0.6     1.0     0.3 0.7 0.0 0.0 5
 # Plane 5 (ceiling - somewhat dark gray)
-objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.5 0.0 5.0     1 1 1     1.0     0.3 0.7 0.0 0.0 5
+objectquadric 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.5 0.0 5.0     0.2 0.2 0.2     1.0     0.3 0.7 0.0 0.0 5
 # background color
 background 0.0 0.0 0.0
 

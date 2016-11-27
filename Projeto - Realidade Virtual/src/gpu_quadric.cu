@@ -1,15 +1,14 @@
 #include "gpu_quadric.h"
 
-#include <thrust/complex.h>
-
 #include "math_lib.h"
 #include "quadric_coefficients.h"
 
 namespace gpu {
 
-__host__ __device__ GPUQuadric::GPUQuadric(const GPUQuadric &quadric)
+GPUQuadric::GPUQuadric(const GPUQuadric &quadric)
     : kEps(1.0e-3f),
-      material_(quadric.material()) {
+      material_(quadric.material_) {
+  //const Coefficients &coeffs = quadric.coefficients();
   const float *coeffs = quadric.coefficients();
 
   this->coefficients_[project::kCoeffA] = coeffs[project::kCoeffA];
@@ -24,9 +23,8 @@ __host__ __device__ GPUQuadric::GPUQuadric(const GPUQuadric &quadric)
   this->coefficients_[project::kCoeffD] = coeffs[project::kCoeffD];
 }
 
-__host__ __device__ GPUQuadric::GPUQuadric(float a, float b, float c, float f, float g, float h,
-                                           float p, float q, float r, float d,
-                                           const GPUMaterial &material)
+GPUQuadric::GPUQuadric(float a, float b, float c, float f, float g, float h, float p, float q,
+                       float r, float d, const GPUMaterial &material)
     : kEps(1.0e-3f),
       material_(material) {
   this->coefficients_[project::kCoeffA] = a;
@@ -41,9 +39,11 @@ __host__ __device__ GPUQuadric::GPUQuadric(float a, float b, float c, float f, f
   this->coefficients_[project::kCoeffD] = d;
 }
 
-__host__ __device__ GPUQuadric& GPUQuadric::operator=(const GPUQuadric &quadric) {
+GPUQuadric& GPUQuadric::operator=(const GPUQuadric &quadric) {
   if (this != &quadric) {
-    this->material_ = quadric.material();
+    //this->material_ = quadric.material();
+    this->material_ = quadric.material_;
+    //const Coefficients &coeffs = quadric.coefficients();
     const float *coeffs = quadric.coefficients();
 
     this->coefficients_[project::kCoeffA] = coeffs[project::kCoeffA];
@@ -111,7 +111,7 @@ __host__ __device__ float GPUQuadric::GetIntersectionParameter(const GPURay &ray
     } else if (math::IsAlmostEqual(discriminant, 0.0f, this->kEps)) {
       t = (-B) / (2 * A);
     } else {
-      float sqrt_delta = thrust::sqrt(thrust::complex<float>(discriminant)).real();
+      float sqrt_delta = sqrt(discriminant);
       // Gets the nearest point in front of the ray center.
       t = (-B - sqrt_delta) / (2 * A);
 

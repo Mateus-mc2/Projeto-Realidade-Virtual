@@ -11,28 +11,34 @@ template<typename T>
 class GPUVector {
  public:
   // Default initial capacity is 10.
-  __host__ __device__ GPUVector() : data_(new T[10]), size_(0), capacity_(10) {}
-  __host__ __device__ GPUVector(const GPUVector<T> &vector)
-      : data_(new T[vector.capacity()]),
-        size_(vector.size()),
+  GPUVector() : size_(0), capacity_(10) {
+    cudaMallocManaged(&this->data_, sizeof(T) * this->capacity_);
+  }
+
+  explicit GPUVector(int capacity) : size_(0), capacity_(capacity) {
+    cudaMallocManaged(&this->data_, sizeof(T) * this->capacity_);
+  }
+
+  GPUVector(const GPUVector<T> &vector)
+      : size_(vector.size()),
         capacity_(vector.capacity()) {
+    cudaMallocManaged(&this->data_, this->capacity_);
     this->CopyFrom(vector);
   }
 
-  __host__ __device__ ~GPUVector() { delete[] this->data_; }
+  ~GPUVector() { cudaFree(this->data_); }
 
   __host__ __device__ T& operator[](int index) { return this->data_[index]; }
   __host__ __device__ T& operator[](int index) const { return this->data_[index]; }
 
-  __host__ __device__ GPUVector<T>& operator=(const GPUVector<T> &vector) {
+  GPUVector<T>& operator=(const GPUVector<T> &vector) {
     if (this != &vector) {
       this->size_ = vector.size();
 
       if (this->capacity_ < vector.capacity()) {
-        delete[] this->data_;
-
-        this->data_ = new T[vector.capacity()];
         this->capacity_ = vector.capacity();
+        cudaFree(this->data_);
+        cudaMallocManaged(&this->data_, sizeof(T) * this->capacity_);
       }
 
       this->CopyFrom(vector);
@@ -42,9 +48,9 @@ class GPUVector {
   }
 
   __host__ __device__ bool IsEmpty() const { return this->size_ == 0; }
-  __host__ __device__ void PushBack(const T &val) {
+  void PushBack(const T &val) {
     if (this->size_ == this->capacity_) {
-      this->ResizeStack();
+      this->ResizeVector();
     }
 
     this->data_[this->size_++] = val;
@@ -60,13 +66,14 @@ class GPUVector {
     memcpy(this->data_, vector.data(), sizeof(T) * this->size_);
   }
 
-  __host__ __device__ void ResizeStack() {
+  void ResizeVector() {
     this->capacity_ *= 2;
-    T *new_vector = new T[this->capacity_];
+    T *new_vector;
 
+    cudaMallocManaged(&new_vector, sizeof(T) * this->capacity_);
     memcpy(new_vector, this->data_, sizeof(T) * this->size_);
+    cudaFree(this->data_);
 
-    delete[] this->data_;
     this->data_ = new_vector;
   }
 

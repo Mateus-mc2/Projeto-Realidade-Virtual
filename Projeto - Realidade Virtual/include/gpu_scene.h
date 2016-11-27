@@ -53,6 +53,8 @@ struct GPUScene {
   int max_depth;
   int seed;
   int light_sampling_type;
+
+  float max_float;
 };
 
 }  // namespace gpu

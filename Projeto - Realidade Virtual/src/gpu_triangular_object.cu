@@ -7,49 +7,14 @@
 
 namespace gpu {
 
-__host__ __device__ GPUTriangularObject::GPUTriangularObject(const GPUTriangularObject &obj)
-    : kEps(1.0e-3f),
-      material_(obj.material()),
-      planes_coeffs_(new float4[obj.num_faces()]),
-      linear_systems_(new GPUMatrix[3 * obj.num_faces()]),
-      num_faces_(obj.num_faces()) {
-  if (obj.num_faces() == 0) {
-    delete[] this->planes_coeffs_;
-    delete[] this->linear_systems_;
-
-    this->planes_coeffs_ = nullptr;
-    this->linear_systems_ = nullptr;
-  }
-
-  const float4 *planes_coeffs = obj.planes_coeffs();
-  const GPUMatrix *linear_systems = obj.linear_systems();
-
-  for (int i = 0; i < this->num_faces_; ++i) {
-    this->planes_coeffs_[i] = planes_coeffs[i];
-
-    this->linear_systems_[3 * i] = linear_systems_[3 * i];
-    this->linear_systems_[3 * i + 1] = linear_systems_[3 * i + 1];
-    this->linear_systems_[3 * i + 2] = linear_systems_[3 * i + 2];
-  }
-}
-
-__host__ __device__ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material,
-                                                             const float3 *vertices,
-                                                             const int3 *faces, int num_faces)
+GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material,
+                                         const GPUVector<float3> &vertices,
+                                         const GPUVector<int3> &faces)
     : kEps(1.0e-3f),
       material_(material),
-      planes_coeffs_(new float4[num_faces]),
-      linear_systems_(new GPUMatrix[3 * num_faces]),
-      num_faces_(num_faces) {
-  if (num_faces == 0) {
-    delete[] this->planes_coeffs_;
-    delete[] this->linear_systems_;
-
-    this->planes_coeffs_ = nullptr;
-    this->linear_systems_ = nullptr;
-  }
-
-  for (int i = 0; i < this->num_faces_; ++i) {
+      planes_coeffs_(faces.size()),
+      linear_systems_(3 * faces.size()) {
+  for (int i = 0; i < faces.size(); ++i) {
     // Get plane equation (coefficients) - we are assuming the .obj files provide us the 
     // correct orientation of the vertices.
     float3 a = vertices[faces[i].x];
@@ -58,12 +23,13 @@ __host__ __device__ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &
 
     float3 ab = make_float3(b.x - a.x, b.y - a.y, b.z - a.z);
     float3 ac = make_float3(c.x - a.x, c.y - a.y, c.z - a.z);
+    float3 normal = math::Cross(ab, ac);
     float4 coeffs;
-    
-    coeffs.x = ab.y * ac.z - ab.z * ac.y;
-    coeffs.y = ab.z * ac.x - ab.x * ac.z;
-    coeffs.z = ab.x * ac.y - ab.y * ac.z;
-    coeffs.w = -(coeffs.x * a.x + coeffs.y * a.y + coeffs.z * a.z);
+
+    coeffs.x = normal.x;
+    coeffs.y = normal.y;
+    coeffs.z = normal.z;
+    coeffs.w = -math::InnerProduct(a, normal);
 
     this->planes_coeffs_[i] = coeffs;
 
@@ -92,36 +58,11 @@ __host__ __device__ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &
   }
 }
 
-__host__ __device__ GPUTriangularObject& GPUTriangularObject::operator=(
-    const GPUTriangularObject &obj) {
+ GPUTriangularObject& GPUTriangularObject::operator=(const GPUTriangularObject &obj) {
   if (this != &obj) {
     this->material_ = obj.material();
-
-    if (this->num_faces_ != obj.num_faces()) {
-      this->num_faces_ = obj.num_faces();
-
-      if (!this->planes_coeffs_) delete[] this->planes_coeffs_;
-      if (!this->linear_systems_) delete[] this->linear_systems_;
-
-      if (this->num_faces_ == 0) {
-        this->planes_coeffs_ = nullptr;
-        this->linear_systems_ = nullptr;
-      } else {
-        this->planes_coeffs_ = new float4[this->num_faces_];
-        this->linear_systems_ = new GPUMatrix[3 * this->num_faces_];
-      }
-    }
-
-    const float4 *planes_coeffs = obj.planes_coeffs();
-    const GPUMatrix *linear_systems = obj.linear_systems();
-
-    for (int i = 0; i < this->num_faces_; ++i) {
-      this->planes_coeffs_[i] = planes_coeffs[i];
-
-      this->linear_systems_[3 * i] = linear_systems_[3 * i];
-      this->linear_systems_[3 * i + 1] = linear_systems_[3 * i + 1];
-      this->linear_systems_[3 * i + 2] = linear_systems_[3 * i + 2];
-    }
+    this->planes_coeffs_ = obj.planes_coeffs();
+    this->linear_systems_ = obj.linear_systems();
   }
 
   return *this;
@@ -138,7 +79,7 @@ __host__ __device__ float GPUTriangularObject::GetIntersectionParameter(const GP
   bool has_intersection = false;
 
   // Get nearest intersection point - need to check every single face of the object.
-  for (int i = 0; i < num_faces_; ++i) {
+  for (int i = 0; i < this->planes_coeffs_.size(); ++i) {
     const float3 current_normal = make_float3(this->planes_coeffs_[i].x, this->planes_coeffs_[i].y,
                                               this->planes_coeffs_[i].z);
     const float numerator = -(this->planes_coeffs_[i].x * ray.origin.x +

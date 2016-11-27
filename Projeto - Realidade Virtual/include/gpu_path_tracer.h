@@ -16,7 +16,7 @@ namespace gpu {
 struct GPUPathTracer {
  public:
   explicit GPUPathTracer(int seed) {
-    cudaMallocManaged(&this->generator, sizeof(thrust::minstd_rand));
+    cudaMallocManaged(&this->generator, sizeof(thrust::default_random_engine));
     cudaMallocManaged(&this->distribution, sizeof(thrust::uniform_real_distribution<float>));
 
     this->generator->seed(seed);
@@ -27,9 +27,9 @@ struct GPUPathTracer {
     cudaFree(this->distribution);
   }
 
-  cv::Mat RenderScene(const GPUScene &scene);
+  cv::Mat RenderScene(const GPUScene *scene);
 
-  thrust::minstd_rand* generator;
+  thrust::default_random_engine *generator;
   thrust::uniform_real_distribution<float> *distribution;
 };
 

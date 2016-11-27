@@ -16,7 +16,7 @@ namespace io {
 namespace {
 
 void ReadOBJ(const std::string &file_directory, const std::string &file_name,
-             std::vector<float3> *vertices, std::vector<int3> *faces) {
+             GPUVector<float3> *vertices, GPUVector<int3> *faces) {
   std::ifstream obj_file(file_directory + file_name);
   std::string word;
 
@@ -33,7 +33,7 @@ void ReadOBJ(const std::string &file_directory, const std::string &file_name,
         obj_file >> vertex.y;
         obj_file >> vertex.z;
 
-        vertices->push_back(vertex);
+        vertices->PushBack(vertex);
       } else if (word == "f") {            // Face, composta de indices para o vetor de vertices
         int3 face;
 
@@ -45,7 +45,7 @@ void ReadOBJ(const std::string &file_directory, const std::string &file_name,
         --face.y;
         --face.z;
 
-        faces->push_back(face);
+        faces->PushBack(face);
       } else {
         std::cout << "==obj==   BORA BOY! token nao suportado: " << word << std::endl;
         std::cout << "==obj==     Leitura interrompida." << std::endl;
@@ -61,13 +61,13 @@ void ReadOBJ(const std::string &file_directory, const std::string &file_name,
 
 }  // namespace
 
-GPUScene ReadGPUScene(const std::string &directory, const std::string &filename) {
-  gpu::GPUCamera camera;
+GPUScene* ReadGPUScene(const std::string &directory, const std::string &filename) {
+  GPUCamera camera;
   float3 bg_color;
 
-  gpu::GPUVector<gpu::GPULight> point_lights;
-  gpu::GPUVector<gpu::GPUQuadric> quadrics_objects;
-  gpu::GPUVector<gpu::GPUTriangularObject> triangular_objects;
+  GPUVector<GPULight> point_lights;
+  GPUVector<GPUQuadric> quadric_objects;
+  GPUVector<GPUTriangularObject> triangular_objects;
 
   bool use_anti_aliasing;
 
@@ -180,9 +180,8 @@ GPUScene ReadGPUScene(const std::string &directory, const std::string &filename)
         sdl_file >> kt;
         sdl_file >> n;
 
-        gpu::GPUMaterial new_material(color, refraction, ka, kd, ks, kt, n);
-        quadrics_objects.PushBack(gpu::GPUQuadric(a, b, c, f, g, h, p, q, r, d,
-                                                  new_material));
+        GPUMaterial new_material(color, refraction, ka, kd, ks, kt, n);
+        quadric_objects.PushBack(GPUQuadric(a, b, c, f, g, h, p, q, r, d, new_material));
       } else if (word == "object") {         // Objetos baseados em malhas trianguladas
         std::string obj_file_name;
         float3 color;
@@ -201,15 +200,13 @@ GPUScene ReadGPUScene(const std::string &directory, const std::string &filename)
         sdl_file >> kt;
         sdl_file >> n;
 
-        gpu::GPUMaterial new_material(color, refraction, ka, kd, ks, kt, n);
-
-        std::vector<float3> new_vertices;
-        std::vector<int3> new_faces;
+        GPUMaterial new_material(color, refraction, ka, kd, ks, kt, n);
+        GPUVector<float3> new_vertices;
+        GPUVector<int3> new_faces;
 
         ReadOBJ(directory, obj_file_name, &new_vertices, &new_faces);
         int num_faces = static_cast<int>(new_faces.size());
-        triangular_objects.PushBack(gpu::GPUTriangularObject(new_material, new_vertices.data(),
-                                                             new_faces.data(), num_faces));
+        triangular_objects.PushBack(GPUTriangularObject(new_material, new_vertices, new_faces));
       } else if(word == "antialiasing") {
         sdl_file >> use_anti_aliasing;
 
@@ -220,19 +217,39 @@ GPUScene ReadGPUScene(const std::string &directory, const std::string &filename)
         std::cout << "  Unsupported token: " << word << std::endl;
         std::cout << "  Closing input file..." << std::endl;
         sdl_file.close();
-        return gpu::GPUScene();
+        return nullptr;
       }
     }
 
     sdl_file.close();
     std::cout << "## SDL file " << filename << " successfully read ##" << std::endl;
 
-    return gpu::GPUScene(camera, bg_color, ambient_light_intensity, point_lights, quadrics_objects,
-                         triangular_objects, use_anti_aliasing, num_paths, max_depth, tone_mapping,
-                         random_seed, light_sampling_type);
+    GPUScene *scene;
+    cudaMallocManaged(&scene, sizeof(GPUScene));
+
+    scene->camera = camera;
+    scene->bg_color = bg_color;
+
+    scene->lights = point_lights;
+    scene->quadrics = quadric_objects;
+    scene->triangular_objs = triangular_objects;
+
+    scene->ambient_light_intensity = ambient_light_intensity;
+    scene->tone_mapping = tone_mapping;
+
+    scene->use_anti_aliasing = use_anti_aliasing;
+
+    scene->num_paths = num_paths;
+    scene->max_depth = max_depth;
+    scene->seed = random_seed;
+    scene->light_sampling_type = light_sampling_type;
+
+    scene->max_float = std::numeric_limits<float>::max();
+
+    return scene;
   } else {
     std::cout << "  Inexistent input file: " << word << std::endl;
-    return gpu::GPUScene();
+    return nullptr;
   }
 }
 

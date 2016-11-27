@@ -4,12 +4,6 @@
 
 #include <device_launch_parameters.h>
 #include <opencv2/ximgproc/edge_filter.hpp>
-#include <thrust/device_free.h>
-#include <thrust/device_malloc.h>
-#include <thrust/device_new.h>
-#include <thrust/device_ptr.h>
-#include <thrust/device_vector.h>
-#include <thrust/execution_policy.h>
 
 #include "math_lib.h"
 
@@ -20,6 +14,8 @@ const double kSigmaS = 12.401;
 const double kSigmaR = 0.8102;
 const bool kAdjustOutliers = true;
 
+__device__ const float kEps = 1.0e-03f;
+
 const int kNumThreads = 1 << 8;
 
 struct GeometricInfo {
@@ -28,17 +24,48 @@ struct GeometricInfo {
 };
 
 
+__device__ GPUMatrix ComputeBaseFromNormal(const float3 &normal) {
+  float3 u, v;
+  if (abs(normal.x) > abs(normal.y)) {
+    u.x = normal.z;
+    u.y = 0.0f;
+    u.z = -normal.x;
+  } else {
+    u.x = 0.0f;
+    u.y = -normal.y;
+    u.z = normal.z;
+  }
+
+  math::Normalize(&u);
+  v = math::Cross(normal, u);
+  GPUMatrix base_transform(3, 3);
+
+  base_transform(0, 0) = normal.x;
+  base_transform(0, 1) = normal.y;
+  base_transform(0, 2) = normal.z;
+
+  base_transform(1, 0) = u.x;
+  base_transform(1, 1) = u.y;
+  base_transform(1, 2) = u.z;
+
+  base_transform(2, 0) = v.x;
+  base_transform(2, 1) = v.y;
+  base_transform(2, 2) = v.z;
+
+  return base_transform;
+}
+
 __device__ void GetNearestObjectAndIntersection(const GPURay &ray, const GPUScene *scene,
                                                 float *param, float3 *normal,
-                                                gpu::GPUTriangularObject *object) {
-  *param = -1.0f;
+                                                gpu::GPUTriangularObject **object) {
+  *param = scene->max_float;
   float3 curr_normal;
 
   for (int i = 0; i < scene->triangular_objs.size(); ++i) {
     float t = scene->triangular_objs[i].GetIntersectionParameter(ray, &curr_normal);
 
-    if (*param < 0.0f || (*param > t && t > 0.0f)) {
-      *object = scene->triangular_objs[i];
+    if (*param > t && t > 0.0f) {
+      *object = &scene->triangular_objs[i];
       *param = t;
       *normal = curr_normal;
     }
@@ -47,84 +74,322 @@ __device__ void GetNearestObjectAndIntersection(const GPURay &ray, const GPUScen
 
 __device__ void GetNearestObjectAndIntersection(const GPURay &ray, const GPUScene *scene,
                                                 float *param, float3 *normal,
-                                                gpu::GPUQuadric *object) {
-  *param = -1.0f;
+                                                gpu::GPUQuadric **object) {
+  *param = scene->max_float;
   float3 curr_normal;
 
   for (int i = 0; i < scene->quadrics.size(); ++i) {
     float t = scene->quadrics[i].GetIntersectionParameter(ray, &curr_normal);
 
-    if (*param < 0.0f || (*param > t && t > 0.0f)) {
-      *object = scene->quadrics[i];
+    if (*param > t && t > 0.0f) {
+      *object = &scene->quadrics[i];
       *param = t;
       *normal = curr_normal;
     }
   }
 }
 
-__device__ float3 TracePath(const GPUScene *scene, thrust::minstd_rand *generator,
+__device__ float Illuminate(const GPURay &shadow_ray, float3 light_position,
+                            const GPUScene *scene, int light_index) {
+  float final_intensity = scene->lights[light_index].intensity;
+  float3 normal;
+
+  const float max_t = shadow_ray.direction.x != 0 ?
+                     (light_position.x - shadow_ray.origin.x) / shadow_ray.direction.x :
+                     (shadow_ray.direction.y != 0 ?
+                     (light_position.y - shadow_ray.origin.y) / shadow_ray.direction.y :
+                     (light_position.z - shadow_ray.origin.z) / shadow_ray.direction.z);
+
+  for (int i = 0; i < scene->quadrics.size() && final_intensity > 0.0f; ++i) {
+    const GPUMaterial &obj_material = scene->quadrics[i].material();
+    float t = scene->quadrics[i].GetIntersectionParameter(shadow_ray, &normal);
+
+    if (t > 0.0 && t < max_t) {
+      final_intensity *= obj_material.k_t;
+    }
+  }
+
+  for (int i = 0; i < scene->triangular_objs.size() && final_intensity > 0; ++i) {
+    const GPUMaterial &obj_material = scene->quadrics[i].material();
+    float t = scene->triangular_objs[i].GetIntersectionParameter(shadow_ray, &normal);
+
+    if (t > 0.0 && t < max_t) {
+      final_intensity *= obj_material.k_t;
+    }
+  }
+
+  return final_intensity;
+}
+
+__device__ float3 TracePath(const GPUScene *scene, thrust::default_random_engine *generator,
                             thrust::uniform_real_distribution<float> *distribution,
                             const GPURay &ray) {
-  float3 color = make_float3(1.0f, 1.0f, 1.0f);
+  if (ray.depth > scene->max_depth) return make_float3(0.0f, 0.0f, 0.0f);
+
+  gpu::GPUQuadric *quadric;
+  gpu::GPUTriangularObject *obj;
+  float t1, t2;
+  float3 normal1, normal2;
+
+  GetNearestObjectAndIntersection(ray, scene, &t1, &normal1, &quadric);
+  GetNearestObjectAndIntersection(ray, scene, &t2, &normal2, &obj);
+
+  float t = t1 < t2 ? t1 : t2;
+  float3 normal = t1 < t2 ? normal1 : normal2;
+  float3 position;
+
+  position.x = ray.origin.x + t * ray.direction.x;
+  position.y = ray.origin.y + t * ray.direction.y;
+  position.z = ray.origin.z + t * ray.direction.z;
+
+  const GPUMaterial &material = t1 < t2 ? quadric->material() : obj->material();
+  float3 material_color = make_float3(material.red, material.green, material.blue);
+  float3 color = material_color;
+
+  color.x *= material.k_a * scene->ambient_light_intensity;
+  color.y *= material.k_a * scene->ambient_light_intensity;
+  color.z *= material.k_a * scene->ambient_light_intensity;
+
+  const float kPi = acos(-1.0f);
+  const float kPDF = 1 / 2 * kPi;
+  float3 direct_contrib = make_float3(0.0f, 0.0f, 0.0f);
+
+  for (int i = 0; i < scene->lights.size(); ++i) {
+    float3 light_position = scene->lights[i].position;
+    float3 light_direction;
+
+    light_direction.x = light_position.x - position.x;
+    light_direction.y = light_position.y - position.y;
+    light_direction.z = light_position.z - position.z;
+
+    math::Normalize(&light_direction);
+    float cos_theta = math::InnerProduct(normal, light_direction);
+
+    if (cos_theta > 0.0f) {
+      GPURay shadow_ray(position, light_direction);
+      float light_intensity = Illuminate(shadow_ray, light_position, scene, i) /*/ kPi*/;
+
+      float3 reflected;
+      reflected.x = 2 * normal.x * cos_theta - light_direction.x;
+      reflected.y = 2 * normal.y * cos_theta - light_direction.y;
+      reflected.z = 2 * normal.z * cos_theta - light_direction.z;
+
+      math::Normalize(&reflected);
+
+      float cos_alpha = math::InnerProduct(normal, reflected);
+      float pow_by_spec_exp = powf(cos_alpha, material.n);
+      float3 light_color;
+
+      light_color.x = scene->lights[i].red;
+      light_color.y = scene->lights[i].green;
+      light_color.z = scene->lights[i].blue;
+
+      float3 dir_prod = math::DirectProduct3(material_color, light_color);
+
+      direct_contrib.x += light_intensity * (material.k_d * dir_prod.x * cos_theta +
+                                             material.k_s * light_color.x * pow_by_spec_exp);
+      direct_contrib.y += light_intensity * (material.k_d * dir_prod.y * cos_theta +
+                                             material.k_s * light_color.y * pow_by_spec_exp);
+      direct_contrib.z += light_intensity * (material.k_d * dir_prod.z * cos_theta +
+                                             material.k_s * light_color.z * pow_by_spec_exp);
+    }
+  }
+
+  color.x += direct_contrib.x;
+  color.y += direct_contrib.y;
+  color.z += direct_contrib.z;
+
+  // Indirect component.
+  float3 indirect_contrib = make_float3(0.0f, 0.0f, 0.0f);
+  float3 viewer;
+
+  viewer.x = ray.origin.x - position.x;
+  viewer.y = ray.origin.y - position.y;
+  viewer.z = ray.origin.z - position.z;
+
+  math::Normalize(&viewer);
+
+  float k_total = material.k_d + material.k_s + material.k_t;
+  float ray_type = (*distribution)(*generator) * k_total;
+
+  if (ray_type < material.k_d) {
+    // Generate a ray with random direction with origin on intesected point (using uniform sphere distribution here).
+    float r_1 = (*distribution)(*generator);
+    float r_2 = (*distribution)(*generator);
+    float phi = acosf(std::sqrt(r_1));
+    float theta = 2 * kPi * r_2;
+
+    GPUMatrix uniform_sample(3, 1);
+
+    uniform_sample(0, 0) = sinf(phi) * cosf(theta);
+    uniform_sample(1, 0) = sinf(phi) * sinf(theta);
+    uniform_sample(2, 0) = cosf(phi);
+
+    GPUMatrix T = ComputeBaseFromNormal(normal);
+    uniform_sample = T * uniform_sample;
+    float3 rand_direction;
+
+    GPURay diffuse_ray(position, rand_direction, ray.refraction_coeffs, ray.depth + 1);
+    float3 diffuse_contrib = TracePath(scene, generator, distribution, diffuse_ray);
+
+    indirect_contrib.x += material.k_d * diffuse_contrib.x;
+    indirect_contrib.y += material.k_d * diffuse_contrib.y;
+    indirect_contrib.z += material.k_d * diffuse_contrib.z;
+  } else if (ray_type < material.k_d + material.k_s) {
+    float cos_theta = math::InnerProduct(normal, viewer);
+    float3 reflected;
+
+    reflected.x = 2 * normal.x * cos_theta - viewer.x;
+    reflected.y = 2 * normal.y * cos_theta - viewer.y;
+    reflected.z = 2 * normal.z * cos_theta - viewer.z;
+
+    math::Normalize(&reflected);
+
+    GPURay reflected_ray(position, reflected, ray.refraction_coeffs, ray.depth + 1);
+    float3 specular_contrib = TracePath(scene, generator, distribution, reflected_ray);
+
+    indirect_contrib.x += material.k_s * specular_contrib.x;
+    indirect_contrib.y += material.k_s * specular_contrib.y;
+    indirect_contrib.z += material.k_s * specular_contrib.z;
+  } else {
+    float n_1, n_2;
+    GPUStack<float> refraction_coeffs = ray.refraction_coeffs;
+
+    if (refraction_coeffs.IsEmpty()) {
+      // Scene's ambient refraction coefficient (we're assuming n = 1.0 here).
+      n_1 = 1.0f;
+      n_2 = material.refraction_coeff;
+      refraction_coeffs.Push(n_2);
+    } else {  // Ray is getting out of the object.
+      n_1 = refraction_coeffs.Peek();
+
+      if (math::IsAlmostEqual(n_1, material.refraction_coeff, kEps)) {
+        refraction_coeffs.Pop();
+        n_2 = refraction_coeffs.IsEmpty() ? 1.0f : refraction_coeffs.Peek();
+      } else {
+        n_2 = material.refraction_coeff;
+        refraction_coeffs.Push(n_2);
+      }
+
+      float3 ray_dir_add_inverse = make_float3(-ray.direction.x, -ray.direction.y,
+                                               -ray.direction.z);
+      float cos_theta_incident = math::InnerProduct(normal, ray_dir_add_inverse);
+      if (cos_theta_incident < 0.0f) {  // If normal was accidentally inverted.
+        normal.x = -normal.x;
+        normal.y = -normal.y;
+        normal.z = -normal.z;
+
+        cos_theta_incident = -cos_theta_incident;
+      }
+
+      float sin_theta_incident = sqrt(1 - cos_theta_incident * cos_theta_incident);
+      float n_r = n_2 / n_1;
+
+      if (sin_theta_incident < n_r) {
+        // If total internal reflection does not occur, transmit ray.
+        n_r = 1 / n_r;
+        float squared_sin_theta_incident = sin_theta_incident * sin_theta_incident;
+        float cos_theta_transmitted = sqrt(1 - n_r * n_r * squared_sin_theta_incident);
+        float3 transmitted;
+
+        transmitted.x = (n_r * cos_theta_incident - cos_theta_transmitted) * normal.x +
+                         n_r * ray.direction.x;
+        transmitted.y = (n_r * cos_theta_incident - cos_theta_transmitted) * normal.y +
+                         n_r * ray.direction.y;
+        transmitted.z = (n_r * cos_theta_incident - cos_theta_transmitted) * normal.z +
+                         n_r * ray.direction.z;
+
+        GPURay transmitted_ray(position, transmitted, refraction_coeffs, ray.depth + 1);
+        float3 transmitted_contrib = TracePath(scene, generator, distribution, transmitted_ray);
+
+        indirect_contrib.x += material.k_t * transmitted_contrib.x;
+        indirect_contrib.y += material.k_t * transmitted_contrib.y;
+        indirect_contrib.z += material.k_t * transmitted_contrib.z;
+      } else {
+        float3 reflected;
+
+        reflected.x = 2 * normal.x * cos_theta_incident + ray.direction.x;
+        reflected.y = 2 * normal.y * cos_theta_incident + ray.direction.y;
+        reflected.z = 2 * normal.z * cos_theta_incident + ray.direction.z;
+
+        GPURay reflected_ray(position, reflected, refraction_coeffs, ray.depth + 1);
+        float3 transmitted_contrib = TracePath(scene, generator, distribution, reflected_ray);
+
+        indirect_contrib.x += material.k_t * transmitted_contrib.x;
+        indirect_contrib.y += material.k_t * transmitted_contrib.y;
+        indirect_contrib.z += material.k_t * transmitted_contrib.z;
+      }
+    }
+  }
+
+  color.x += indirect_contrib.x;
+  color.y += indirect_contrib.y;
+  color.z += indirect_contrib.z;
+
+  math::Clamp3(0.0f, 1.0f, &color);
 
   return color;
 }
 
-__global__ void LaunchKernel(const GPUScene *scene, thrust::minstd_rand *generator,
+__global__ void LaunchKernel(const GPUScene *scene, thrust::default_random_engine *generator,
                              thrust::uniform_real_distribution<float> *distribution,
-                             int size, float3 *img_data, GeometricInfo *geometric_info_data) {
-  int i = blockIdx.x;
-  int j = threadIdx.x;
-  int idx = i * blockDim.x + j;
+                             int rows, int cols, float3 *img_data,
+                             GeometricInfo *geometric_info_data) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (idx < size) {
-    float pixel_width = (scene->camera.top.x - scene->camera.bottom.x) / scene->camera.width;
-    float pixel_height = (scene->camera.top.y - scene->camera.bottom.y) / scene->camera.height;
+  if (idx < rows * cols) {
+    int i = static_cast<int>(floorf(static_cast<float>(idx) / cols));
+    int j = idx % cols;
 
-    float x_t = scene->use_anti_aliasing ? (*distribution)(*generator) : 0.5f;
-    float y_t = scene->use_anti_aliasing ? (*distribution)(*generator) : 0.5f;
-    float3 looking_at, direction;
+    //for (int k = 0; k < scene->num_paths; ++k) {
+      float pixel_width = (scene->camera.top.x - scene->camera.bottom.x) / scene->camera.width;
+      float pixel_height = (scene->camera.top.y - scene->camera.bottom.y) / scene->camera.height;
 
-    looking_at.x = scene->camera.bottom.x + x_t*pixel_width + j*pixel_width;
-    looking_at.y = scene->camera.top.x - y_t*pixel_height - i*pixel_height;
-    looking_at.z = 0.0;
+      float x_t = scene->use_anti_aliasing ? (*distribution)(*generator) : 0.5f;
+      float y_t = scene->use_anti_aliasing ? (*distribution)(*generator) : 0.5f;
+      float3 looking_at, direction;
 
-    direction.x = looking_at.x - scene->camera.eye.x;
-    direction.y = looking_at.y - scene->camera.eye.y;
-    direction.z = looking_at.z - scene->camera.eye.z;
+      looking_at.x = scene->camera.bottom.x + x_t*pixel_width + j*pixel_width;
+      looking_at.y = scene->camera.top.x - y_t*pixel_height - i*pixel_height;
+      looking_at.z = 0.0;
 
-    math::Normalize(&direction);
+      direction.x = looking_at.x - scene->camera.eye.x;
+      direction.y = looking_at.y - scene->camera.eye.y;
+      direction.z = looking_at.z - scene->camera.eye.z;
 
-    gpu::GPURay ray(scene->camera.eye, direction);
-    float3 color = TracePath(scene, generator, distribution, ray);
+      math::Normalize(&direction);
 
-    img_data[idx].x += color.x;
-    img_data[idx].y += color.y;
-    img_data[idx].z += color.z;
+      gpu::GPURay ray(scene->camera.eye, direction);
+      float3 color = TracePath(scene, generator, distribution, ray);
 
-    // Gather geometric information.
-    gpu::GPUQuadric quadric;
-    gpu::GPUTriangularObject obj;
-    float t1, t2;
-    float3 normal1, normal2;
+      img_data[idx].x += color.x;
+      img_data[idx].y += color.y;
+      img_data[idx].z += color.z;
 
-    GetNearestObjectAndIntersection(ray, scene, &t1, &normal1, &quadric);
-    GetNearestObjectAndIntersection(ray, scene, &t2, &normal2, &obj);
+      // Gather geometric information.
+      gpu::GPUQuadric *quadric;
+      gpu::GPUTriangularObject *obj;
+      float t1, t2;
+      float3 normal1, normal2;
 
-    float t = t1 < t2 ? t1 : t2;
-    geometric_info_data[idx].normal = t1 < t2 ? normal1 : normal2;
+      GetNearestObjectAndIntersection(ray, scene, &t1, &normal1, &quadric);
+      GetNearestObjectAndIntersection(ray, scene, &t2, &normal2, &obj);
 
-    geometric_info_data[idx].position.x = ray.origin.x + t * ray.direction.x;
-    geometric_info_data[idx].position.y = ray.origin.y + t * ray.direction.y;
-    geometric_info_data[idx].position.z = ray.origin.z + t * ray.direction.z;
+      float t = t1 < t2 ? t1 : t2;
+      geometric_info_data[idx].normal = t1 < t2 ? normal1 : normal2;
+
+      geometric_info_data[idx].position.x = ray.origin.x + t * ray.direction.x;
+      geometric_info_data[idx].position.y = ray.origin.y + t * ray.direction.y;
+      geometric_info_data[idx].position.z = ray.origin.z + t * ray.direction.z;
+    //}
   }
 }
 
 }  // namespace
 
-cv::Mat GPUPathTracer::RenderScene(const GPUScene &scene) {
-  int rows = scene.camera.height;
-  int cols = scene.camera.width;
+cv::Mat GPUPathTracer::RenderScene(const GPUScene *scene) {
+  int rows = scene->camera.height;
+  int cols = scene->camera.width;
 
   cudaError_t error;
   float3 *img_data;
@@ -142,24 +407,10 @@ cv::Mat GPUPathTracer::RenderScene(const GPUScene &scene) {
     return cv::Mat();
   }
 
-  GPUScene *device_scene;
-  error = cudaMalloc(&device_scene, sizeof(GPUScene));
-  if (error != cudaSuccess) {
-    std::cerr << "Cuda error " << error << std::endl;
-    return cv::Mat();
-  }
-
-  error = cudaMemcpy(device_scene, &scene, sizeof(GPUScene), cudaMemcpyHostToDevice);
-  if (error != cudaSuccess) {
-    std::cerr << "Cuda error " << error << std::endl;
-    return cv::Mat();
-  }
-
   int num_blocks = rows * cols / kNumThreads + 1;
-  LaunchKernel<<<num_blocks, kNumThreads>>>(device_scene, this->generator, this->distribution,
-                                            rows * cols, img_data, geometric_info_data);
+  LaunchKernel<<<num_blocks, kNumThreads>>>(scene, this->generator, this->distribution,
+                                            rows, cols, img_data, geometric_info_data);
   cudaDeviceSynchronize();
-  cudaFree(device_scene);
 
   cv::Mat rendered_img(rows, cols, CV_32FC3);
   cv::Mat geometric_info(rows, cols, CV_32FC(6));
@@ -187,7 +438,10 @@ cv::Mat GPUPathTracer::RenderScene(const GPUScene &scene) {
     }
   }
 
-  rendered_img /= scene.num_paths;
+  cudaFree(img_data);
+  cudaFree(geometric_info_data);
+
+  rendered_img /= scene->num_paths;
   //if (rows * cols > 0)
   //  cv::ximgproc::amFilter(geometric_info, rendered_img, rendered_img, kSigmaS, kSigmaR,
   //                         kAdjustOutliers);

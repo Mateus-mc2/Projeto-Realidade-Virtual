@@ -2,6 +2,7 @@
 
 #include <opencv2/ximgproc/edge_filter.hpp>
 
+using Eigen::Matrix3d;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
@@ -9,6 +10,14 @@ namespace pt {
 namespace {
 
 typedef cv::Vec<float, 6> GeometricInfo;
+
+const double kPi = std::acos(-1);
+const double kPDF = 1 / (2 * kPi);
+const int kNumIndirectSamples = 2;
+
+Vector3d DirectProduct3(const Vector3d &u, const Vector3d &v) {
+  return Vector3d(u.x() * v.x(), u.y() * v.y(), u.z() * v.z());
+}
 
 }  // namespace
 
@@ -49,7 +58,7 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
       Vector3d light_direction =  this->scene_.point_lights_[i].position - intersection_point;
       light_direction = light_direction / light_direction.norm();
       util::Ray shadow_ray(intersection_point, light_direction, ray.ambient_objs, 1);
-      
+
       // Here we compute how much light is blocked by opaque and transparent surfaces, and use the
       // resulting intensity to scale diffuse and specular terms of the final color.
       double light_intensity = this->ScaleLightIntensity(this->scene_.point_lights_[i].intensity,
@@ -60,14 +69,15 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
       if (cos_theta > 0.0) {
         Vector3d reflected = 2*normal*cos_theta - light_direction;
         reflected = reflected / reflected.norm();
-        
+
         double cos_alpha = reflected.dot(viewer);
         Vector3d light_color(this->scene_.point_lights_[i].red, 
                              this->scene_.point_lights_[i].green,
                              this->scene_.point_lights_[i].blue);
 
         color += light_intensity*(obj_material.k_d*material_color*cos_theta +
-                                obj_material.k_s*light_color*std::pow(cos_theta, obj_material.n));
+                                  obj_material.k_s*light_color*
+                                  std::pow(cos_alpha, obj_material.n));
       }
     }
 
@@ -89,14 +99,16 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
         if (cos_theta > 0.0) {
           Vector3d reflected = 2*normal*cos_theta - light_direction;
           reflected = reflected / reflected.norm();
-        
+
           double cos_alpha = reflected.dot(viewer);
           Vector3d light_color(this->scene_.extense_lights_[i].material().red,
                                this->scene_.extense_lights_[i].material().green,
                                this->scene_.extense_lights_[i].material().blue);
+          Vector3d dir_prod = DirectProduct3(material_color, light_color);
 
-          color += light_intensity*(obj_material.k_d*material_color*cos_theta +
-                                  obj_material.k_s*light_color*std::pow(cos_theta, obj_material.n));
+          color += light_intensity*(obj_material.k_d*dir_prod*cos_theta +
+                                    obj_material.k_s*light_color*
+                                    std::pow(cos_alpha, obj_material.n));
         }
       }
     }
@@ -131,7 +143,7 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
               light_direction =  light_origin - intersection_point;
               light_direction = light_direction / light_direction.norm();
               util::Ray shadow_ray(intersection_point, light_direction, ray.ambient_objs, 1);
-      
+
               // Here we compute how much light is blocked by opaque and transparent surfaces, and use the
               // resulting intensity to scale diffuse and specular terms of the final color.
               double light_intensity = this->ScaleLightIntensity(this->scene_.extense_lights_[i].material().lp,
@@ -147,9 +159,11 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
                 Vector3d light_color(this->scene_.extense_lights_[i].material().red,
                                      this->scene_.extense_lights_[i].material().green,
                                      this->scene_.extense_lights_[i].material().blue);
+                Vector3d dir_prod = DirectProduct3(material_color, light_color);
 
-                color += light_intensity*(obj_material.k_d*material_color*cos_theta +
-                         obj_material.k_s*light_color*std::pow(cos_theta, obj_material.n));
+                color += light_intensity*(obj_material.k_d*dir_prod*cos_theta +
+                                          obj_material.k_s*light_color*
+                                          std::pow(cos_alpha, obj_material.n));
               }
             }
           }
@@ -177,7 +191,7 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
             light_direction =  light_origin - intersection_point;
             light_direction = light_direction / light_direction.norm();
             util::Ray shadow_ray(intersection_point, light_direction, ray.ambient_objs, 1);
-      
+
             // Here we compute how much light is blocked by opaque and transparent surfaces, and use the
             // resulting intensity to scale diffuse and specular terms of the final color.
             double light_intensity = this->ScaleLightIntensity(this->scene_.extense_lights_[i].material().lp,
@@ -188,36 +202,113 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
             if (cos_theta > 0.0) {
               Vector3d reflected = 2*normal*cos_theta - light_direction;
               reflected = reflected / reflected.norm();
-        
+
               double cos_alpha = reflected.dot(viewer);
               Vector3d light_color(this->scene_.extense_lights_[i].material().red,
-                                    this->scene_.extense_lights_[i].material().green,
-                                    this->scene_.extense_lights_[i].material().blue);
+                                   this->scene_.extense_lights_[i].material().green,
+                                   this->scene_.extense_lights_[i].material().blue);
+              Vector3d dir_prod = DirectProduct3(material_color, light_color);
 
-              color += light_intensity*(obj_material.k_d*material_color*cos_theta +
-                        obj_material.k_s*light_color*std::pow(cos_theta, obj_material.n));
+              color += light_intensity*(obj_material.k_d*dir_prod*cos_theta +
+                                        obj_material.k_s*light_color*
+                                        std::pow(cos_alpha, obj_material.n));
             }
           }
         }
       }
     }
 
+    //if (obj_material.k_s > 0.0f) {
+    //  Vector3d reflected = 2*normal*normal.dot(viewer) - viewer;
+    //  reflected = reflected / reflected.norm();
+    //  util::Ray new_specular_ray(intersection_point, reflected, ray.ambient_objs, ray.depth + 1);
+    //  color += obj_material.k_s * this->TracePath(new_specular_ray);
+    //}
+
+    //if (obj_material.k_t > 0.0f) {
+    //  double n_1;
+    //  double n_2;
+    //  std::vector<util::RenderableObject*> objs_stack(ray.ambient_objs);
+
+    //  if (objs_stack.empty()) {  // Scene's ambient refraction coefficient (we're assuming n =
+    //    n_1 = 1.0;
+    //    n_2 = obj_material.refraction_coeff;
+    //    objs_stack.push_back(object);
+    //  } else {  // Ray is getting out of current object.
+    //    util::RenderableObject *last_obj = objs_stack.back();
+    //    n_1 = last_obj->material().refraction_coeff;
+
+    //    if (object != last_obj) {
+    //      n_2 = obj_material.refraction_coeff;
+    //      objs_stack.push_back(object);
+    //    } else {
+    //      objs_stack.pop_back();
+    //      n_2 = objs_stack.empty() ? 1.0 : objs_stack.back()->material().refraction_coeff;
+    //    }
+    //  }
+
+    //  double cos_theta_incident = normal.dot(-ray.direction);
+
+    //  if (cos_theta_incident < 0.0) {
+    //    normal = -normal;
+    //    cos_theta_incident = -cos_theta_incident;
+    //  }
+
+    //  double sin_theta_incident = std::sqrt(1 - cos_theta_incident*cos_theta_incident);
+
+    //  // Check if it's a total internal reflection.
+    //  if (sin_theta_incident < (n_2 / n_1)) {
+    //    // Get new refracted ray.
+    //    double n_r = n_1 / n_2;
+    //    Vector3d refracted = (n_r*cos_theta_incident - std::sqrt(1 -
+    //      std::pow(n_r, 2)*std::pow(sin_theta_incident, 2)))*normal
+    //      + n_r*ray.direction;
+    //    // Need to update the stack of objects.
+    //    util::Ray new_refracted_ray(intersection_point, refracted, objs_stack, ray.depth + 1);
+    //    color += obj_material.k_t * this->TracePath(new_refracted_ray);
+    //  } else {  // Simulate total internal reflection.
+    //    Vector3d total_internal_reflected = 2*normal*cos_theta_incident + ray.direction;
+    //    util::Ray total_internal_reflection_ray(intersection_point,
+    //      total_internal_reflected,
+    //      ray.ambient_objs,
+    //      ray.depth + 1);
+    //    color += obj_material.k_t * this->TracePath(total_internal_reflection_ray);
+    //  }
+
+    //}
+
     //## COMPONENTE INDIRETA
     double k_tot = obj_material.k_d + obj_material.k_s + obj_material.k_t;
     double ray_type = this->distribution_(this->generator_)*k_tot;
     Vector3d indirect_light;
+    Matrix3d T = this->ComputeBaseFromNormal(normal);
 
+    //for (int i = 0; i < kNumIndirectSamples; ++i) {
+    //  // Generate a ray with random direction with origin on intesected point (using uniform sphere distribution here).
+    //  double r_1 = this->distribution_(this->ray_generator_);
+    //  double r_2 = this->distribution_(this->ray_generator_);
+    //  double phi = std::acos(std::sqrt(r_1));
+    //  double theta = 2*M_PI*r_2;
+
+    //  Vector3d rand_direction(std::sin(phi)*std::cos(theta),
+    //    std::sin(phi)*std::sin(theta),
+    //    std::cos(phi));
+    //  util::Ray new_diffuse_ray(intersection_point, T * rand_direction, ray.ambient_objs, ray.depth + 1);
+    //  indirect_light = obj_material.k_d * this->TracePath(new_diffuse_ray);
+    //}
+
+    //indirect_light /= kNumIndirectSamples * kPDF;
     if (ray_type < obj_material.k_d) {  // Throw a diffuse ray
       // Generate a ray with random direction with origin on intesected point (using uniform sphere distribution here).
       double r_1 = this->distribution_(this->ray_generator_);
       double r_2 = this->distribution_(this->ray_generator_);
       double phi = std::acos(std::sqrt(r_1));
       double theta = 2*M_PI*r_2;
-      
+
       Vector3d rand_direction(std::sin(phi)*std::cos(theta),
                               std::sin(phi)*std::sin(theta),
                               std::cos(phi));
-      util::Ray new_diffuse_ray(intersection_point, rand_direction, ray.ambient_objs, ray.depth + 1);
+      util::Ray new_diffuse_ray(intersection_point, T * rand_direction, ray.ambient_objs, ray.depth + 1);
       indirect_light = obj_material.k_d * this->TracePath(new_diffuse_ray);
     } else if (ray_type < obj_material.k_d + obj_material.k_s) {  // Throw a specular ray
       Vector3d reflected = 2*normal*normal.dot(viewer) - viewer;
@@ -247,7 +338,7 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
       }
 
       double cos_theta_incident = normal.dot(-ray.direction);
-      
+
       if (cos_theta_incident < 0.0) {
         normal = -normal;
         cos_theta_incident = -cos_theta_incident;
@@ -267,11 +358,9 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
         indirect_light = obj_material.k_t * this->TracePath(new_refracted_ray);
       } else {  // Simulate total internal reflection.
         Vector3d total_internal_reflected = 2*normal*cos_theta_incident + ray.direction;
-        util::Ray total_internal_reflection_ray(intersection_point,
-                                                total_internal_reflected,
-                                                ray.ambient_objs,
-                                                ray.depth + 1);
-        indirect_light = this->TracePath(total_internal_reflection_ray);
+        util::Ray total_internal_reflection_ray(intersection_point, total_internal_reflected,
+                                                ray.ambient_objs, ray.depth + 1);
+        indirect_light = obj_material.k_t * this->TracePath(total_internal_reflection_ray);
       }
     }
 
@@ -286,10 +375,28 @@ Vector3d PTRenderer::TracePath(const util::Ray &ray) {
   }
 }
 
+Matrix3d PTRenderer::ComputeBaseFromNormal(const Vector3d &normal) {
+  Vector3d u, v;
+  Matrix3d base_transform;
+
+  if (std::abs(normal.x()) > std::abs(normal.y())) {
+    u << normal.z(), 0.0, -normal.x();
+  } else {
+    u << 0.0, -normal.z(), normal.y();
+  }
+
+  u /= u.norm();
+  v = normal.cross(u);
+  base_transform << normal.x(), u.x(), v.x(),
+                    normal.y(), u.y(), v.y(),
+                    normal.z(), u.z(), v.z();
+
+  return base_transform;
+}
+
 void PTRenderer::GetNearestObjectAndIntersection(const util::Ray &ray,
                                                  util::RenderableObject **object,
-                                                 double *parameter,
-                                                 Eigen::Vector3d *normal) {
+                                                 double *parameter, Vector3d *normal) {
   *parameter = std::numeric_limits<double>::max();
   Vector3d curr_normal;
 
@@ -484,7 +591,7 @@ cv::Mat PTRenderer::RenderScene() {
 
   rendered_image = rendered_image / processed_rays;
 
-  const int N = 2;
+  const int N = 1;
   for (int i = 0; i < N; ++i)
     cv::ximgproc::amFilter(geometric_information, rendered_image, rendered_image, 12.401, 0.8102, true);
 

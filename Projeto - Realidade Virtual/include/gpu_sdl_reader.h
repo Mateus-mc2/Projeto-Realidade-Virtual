@@ -8,7 +8,7 @@
 namespace gpu {
 namespace io {
 
-GPUScene ReadGPUScene(const std::string &directory, const std::string &filename);
+GPUScene* ReadGPUScene(const std::string &directory, const std::string &filename);
 
 }  // namespace io
 }  // namespace gpu

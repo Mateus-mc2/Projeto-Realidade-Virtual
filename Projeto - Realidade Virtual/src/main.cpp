@@ -17,7 +17,16 @@
 #include "pnm_writer.h"
 #include "sdl_reader.h"
 
+using gpu::GPUScene;
+using gpu::GPUPathTracer;
+using io::SDLReader;
+using util::SDLObject;
+
 int main(int argc, char* argv[]) {
+  size_t cuda_stack_size;
+  cudaThreadGetLimit(&cuda_stack_size, cudaLimitStackSize);
+
+  std::cout << "HELLO! Stack size for one thread is " << cuda_stack_size << ". :D :D";
   if (argc < 4) {
     std::cout << "  SDL input and targets missing." << std::endl;
     return -1;
@@ -25,25 +34,35 @@ int main(int argc, char* argv[]) {
 
   // Leitura da cena
   std::cout << "\n## Reading SDL file..." << std::endl;
-  io::SDLReader sdl_reader;
-  util::SDLObject sdl_object = sdl_reader.ReadSDL(argv[1], argv[2]);
+  SDLReader sdl_reader;
+  SDLObject sdl_object = sdl_reader.ReadSDL(argv[1], argv[2]);
 
   // ## Testando funcionalidade da GPU.
-  gpu::GPUScene scene = gpu::io::ReadGPUScene(argv[1], argv[2]);
-  gpu::GPUPathTracer path_tracer(scene.seed);
-  cv::Mat rendered_img = path_tracer.RenderScene(scene);
+  GPUScene *scene = gpu::io::ReadGPUScene(argv[1], argv[2]);
+  if (scene) {
+    GPUPathTracer path_tracer(scene->seed);
+    cv::Mat rendered_img = path_tracer.RenderScene(scene);
+    cudaFree(scene);
+
+    cv::imshow("Rendered Image", rendered_img);
+    std::cout << "  Press any key to close the image." << std::endl;
+    cv::waitKey(0);
+    cv::destroyAllWindows();
+  }
+
+  cv::Mat rendered_img;
 
   // Processamento
-  //std::cout << "\n## Rendering started." << std::endl;
-  //pt::PTRenderer pt_renderer(sdl_object);
+  std::cout << "\n## Rendering started." << std::endl;
+  pt::PTRenderer pt_renderer(sdl_object);
 
-  //std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-  //cv::Mat rendered_img = pt_renderer.RenderScene();
-  //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+  rendered_img = pt_renderer.RenderScene();
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-  //std::chrono::duration<double> time_elapsed =
-  //    std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-  //std::cout << "  Time elapsed: " << time_elapsed.count() << " seconds." << std::endl;
+  std::chrono::duration<double> time_elapsed =
+      std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+  std::cout << "  Time elapsed: " << time_elapsed.count() << " seconds." << std::endl;
 
   cv::imshow("Rendered Image", rendered_img);
   std::cout << "  Press any key to close the image." << std::endl;
@@ -51,15 +70,15 @@ int main(int argc, char* argv[]) {
   cv::destroyAllWindows();
 
   //// Escrita da imagem renderizada
-  //rendered_img *= 255;
-  //std::cout << "\n## Exporting file..." << std::endl;
-  //io::PNMWriter pnm_mgr(argv[3]);
+  rendered_img *= 255;
+  std::cout << "\n## Exporting file..." << std::endl;
+  io::PNMWriter pnm_mgr(argv[3]);
 
-  //if (argc > 4) {
-  //  pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
-  //} else {
-  //  pnm_mgr.WritePNMFile(rendered_img);
-  //}
+  if (argc > 4) {
+    pnm_mgr.WritePNMFile(rendered_img, argv[3], argv[4]);
+  } else {
+    pnm_mgr.WritePNMFile(rendered_img);
+  }
 
   return 0;
 }

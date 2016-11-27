@@ -140,6 +140,9 @@
     <ClInclude Include="include\gpu_sdl_reader.h">
       <Filter>Header Files\gpu</Filter>
     </ClInclude>
+    <ClInclude Include="include\gpu_array.h">
+      <Filter>Header Files\gpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\gpu_quadric.cu">

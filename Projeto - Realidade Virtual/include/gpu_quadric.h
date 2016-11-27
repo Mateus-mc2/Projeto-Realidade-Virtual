@@ -3,6 +3,7 @@
 
 #include <cuda_runtime.h>
 
+#include "gpu_array.h"
 #include "gpu_material.h"
 #include "gpu_ray.h"
 
@@ -10,23 +11,27 @@ namespace gpu {
 
 class GPUQuadric {
  public:
-  __host__ __device__ GPUQuadric() : kEps(1.0e-3f) {}
-  __host__ __device__ GPUQuadric(const GPUQuadric &quadric);
-  __host__ __device__ GPUQuadric(float a, float b, float c, float f, float g, float h, float p,
-                                 float q, float r, float d, const GPUMaterial &material);
-  __host__ __device__ ~GPUQuadric() {}
+  typedef GPUArray<float, 10> Coefficients;
 
-  __host__ __device__ GPUQuadric& operator=(const GPUQuadric &quadric);
+  GPUQuadric() : kEps(1.0e-3f) {}
+  GPUQuadric(const GPUQuadric &quadric);
+  GPUQuadric(float a, float b, float c, float f, float g, float h, float p, float q, float r,
+             float d, const GPUMaterial &material);
+  ~GPUQuadric() {}
+
+  GPUQuadric& operator=(const GPUQuadric &quadric);
 
   __host__ __device__ float GetIntersectionParameter(const GPURay &ray, float3 *normal) const;
 
   // Accessors.
   __host__ __device__ const GPUMaterial& material() const { return this->material_; }
+  //const Coefficients& coefficients() const { return this->coefficients_; }
   __host__ __device__ const float* coefficients() const { return this->coefficients_; }
 
  private:
   const float kEps;
   GPUMaterial material_;
+  //Coefficients coefficients_;
   float coefficients_[10];
 };
 
