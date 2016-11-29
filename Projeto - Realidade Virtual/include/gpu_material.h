@@ -16,6 +16,7 @@ struct GPUMaterial {
         refraction_coeff(refraction_coeff),
         k_a(k_a),
         k_d(k_d),
+        k_s(k_s),
         k_t(k_t),
         n(n) {}
   __host__ __device__ ~GPUMaterial() {}

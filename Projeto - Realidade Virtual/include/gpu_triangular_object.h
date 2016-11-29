@@ -26,7 +26,8 @@ class GPUTriangularObject {
 
   GPUTriangularObject& operator=(const GPUTriangularObject &obj);
 
-  __host__ __device__ float GetIntersectionParameter(const GPURay &ray, float3 *normal) const;
+  __host__ __device__ float GetIntersectionParameter(const GPURay &ray, float max_float,
+                                                     float3 *normal) const;
 
   // Accessors.
   __host__ __device__ const GPUMaterial& material() const { return this->material_; }

@@ -7,8 +7,8 @@ antialiasing 1
 ### lightsamplingtype -> 1- grade; 2- area determina numero de raios randomicos no triangulo;
 lightsamplingtype 1
 
-npaths 2
-maxdepth 1
+npaths 3
+maxdepth 2
 tonemapping 0.0
 seed 9
 
@@ -16,8 +16,8 @@ seed 9
 # x y z     red green blue     intensity
 pointlight 1.0 3.5 -23     1 1 1     0.8
 pointlight 1.0 3.5 -19     1 1 1     0.8
-pointlight -1.0 3.5 -23     1 1 1     0.8
-pointlight -1.0 3.5 -19     1 1 1     0.8
+pointlight -1.0 3.5 -23    1 1 1     0.8
+pointlight -1.0 3.5 -19    1 1 1     0.8
 # pointlight 0.0 2.0 -15     1 1 1     0.8
 
 # object definition

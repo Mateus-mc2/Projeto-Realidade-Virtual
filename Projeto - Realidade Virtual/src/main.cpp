@@ -23,10 +23,6 @@ using io::SDLReader;
 using util::SDLObject;
 
 int main(int argc, char* argv[]) {
-  size_t cuda_stack_size;
-  cudaThreadGetLimit(&cuda_stack_size, cudaLimitStackSize);
-
-  std::cout << "HELLO! Stack size for one thread is " << cuda_stack_size << ". :D :D";
   if (argc < 4) {
     std::cout << "  SDL input and targets missing." << std::endl;
     return -1;
@@ -44,7 +40,7 @@ int main(int argc, char* argv[]) {
     cv::Mat rendered_img = path_tracer.RenderScene(scene);
     cudaFree(scene);
 
-    cv::imshow("Rendered Image", rendered_img);
+    if (!rendered_img.empty()) cv::imshow("Rendered Image", rendered_img);
     std::cout << "  Press any key to close the image." << std::endl;
     cv::waitKey(0);
     cv::destroyAllWindows();

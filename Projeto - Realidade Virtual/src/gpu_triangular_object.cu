@@ -69,8 +69,9 @@ GPUTriangularObject::GPUTriangularObject(const GPUMaterial &material,
 }
 
 __host__ __device__ float GPUTriangularObject::GetIntersectionParameter(const GPURay &ray,
+                                                                        float max_float,
                                                                         float3 *normal) const {
-  float min_t = -1.0f;
+  float min_t = max_float;
   auto is_inner_point = [this](float a, float b, float c) -> bool { 
     return math::IsAlmostEqual(a + b + c, 1.0f, this->kEps) && a >= 0 && b >= 0 && c >= 0 && a <= 1
            && b <= 1 && c <= 1;
@@ -82,13 +83,9 @@ __host__ __device__ float GPUTriangularObject::GetIntersectionParameter(const GP
   for (int i = 0; i < this->planes_coeffs_.size(); ++i) {
     const float3 current_normal = make_float3(this->planes_coeffs_[i].x, this->planes_coeffs_[i].y,
                                               this->planes_coeffs_[i].z);
-    const float numerator = -(this->planes_coeffs_[i].x * ray.origin.x +
-                              this->planes_coeffs_[i].y * ray.origin.y +
-                              this->planes_coeffs_[i].z * ray.origin.z +
+    const float numerator = - (math::InnerProduct(current_normal, ray.origin) +
                               this->planes_coeffs_[i].w);
-    const float denominator = (current_normal.x * ray.direction.x +
-                               current_normal.y * ray.direction.y +
-                               current_normal.z * ray.direction.z);
+    const float denominator = math::InnerProduct(current_normal, ray.direction);
 
     // Test if the ray and this plane are parallel (or if this plane contains the ray).
     // Returns a negative (dummy) parameter t if this happens.
@@ -112,7 +109,7 @@ __host__ __device__ float GPUTriangularObject::GetIntersectionParameter(const GP
     bool is_inside = is_inner_point(barycentric_coords(0, 0), barycentric_coords(1, 0),
                                     barycentric_coords(2, 0));
 
-    if (is_inside && (!has_intersection || (min_t > curr_t && curr_t > this->kEps))) {
+    if (is_inside && (min_t > curr_t && curr_t > this->kEps)) {
       min_t = curr_t;
       (*normal) = current_normal;
       has_intersection = true;
@@ -121,9 +118,10 @@ __host__ __device__ float GPUTriangularObject::GetIntersectionParameter(const GP
 
   if (has_intersection) {
     math::Normalize(normal);
+    return min_t;
+  } else {
+    return -1.0f;
   }
-
-  return min_t;
 }
 
 }  // namespace gpu
